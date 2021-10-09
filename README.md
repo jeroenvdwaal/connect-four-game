@@ -1,4 +1,4 @@
-# Play connect-four-game against the computer
+# Backtracking demo Connect Four game
 
 This project is a [backtracking](https://www.geeksforgeeks.org/backtracking-algorithms/) demo of the game [Connect Four](https://en.wikipedia.org/wiki/Connect_Four).
 
