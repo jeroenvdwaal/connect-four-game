@@ -63,6 +63,43 @@
       gap: 10px;
     }
 
+    #column-buttons {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: none; /* hidden by default, shown via media query */
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+      z-index: 20;
+      pointer-events: none;
+    }
+    #column-buttons > button {
+      pointer-events: auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      padding: 0;
+      font-weight: bold;
+      font-size: 1.1em;
+      background: rgba(255, 255, 255, 0.12);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #column-buttons > button:hover,
+    #column-buttons > button:active {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.08);
+    }
+
     button {
       padding: 8px 20px;
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -132,27 +169,92 @@
     #btn-again:hover {
       background: linear-gradient(135deg, #6190ff, #4a70f5);
     }
+
+    /* Show column buttons on touch devices and small screens */
+    @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+      #column-buttons {
+        display: flex;
+      }
+
+      /* Adjust HUD for smaller screens */
+      #hud {
+        padding: 12px 16px;
+      }
+      #status {
+        font-size: 1em;
+      }
+      .btns button {
+        padding: 6px 14px;
+        font-size: 0.85em;
+      }
+
+      /* Make modal more compact */
+      #modal {
+        padding: 32px 40px;
+        margin: 16px;
+      }
+      #modal h2 {
+        font-size: 2em;
+      }
+      #modal p {
+        font-size: 1em;
+        margin-bottom: 24px;
+      }
+      #btn-again {
+        padding: 12px 32px;
+        font-size: 0.95em;
+      }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 480px) {
+      #column-buttons > button {
+        width: 38px;
+        height: 38px;
+        font-size: 1em;
+      }
+      #hud {
+        padding: 10px 12px;
+      }
+      #status {
+        font-size: 0.9em;
+      }
+      .btns button {
+        padding: 5px 10px;
+        font-size: 0.8em;
+      }
+    }
   </style>
 </head>
 
 <body>
 
   <div id="hud">
-    <div id="status">
+    <div id="status" aria-live="polite" aria-atomic="true">
       <div class="dot" id="pdot" style="background:#d4213d; color:#d4213d"></div>
       <span id="stxt">Your turn (Red)</span>
     </div>
     <div class="btns">
-      <button id="btn-undo">Undo</button>
-      <button id="btn-new">New Game</button>
+      <button id="btn-undo" aria-label="Undo last move">Undo</button>
+      <button id="btn-new" aria-label="Start new game">New Game</button>
     </div>
+  </div>
+
+  <div id="column-buttons" class="column-buttons">
+    <button data-col="0" aria-label="Column 1">1</button>
+    <button data-col="1" aria-label="Column 2">2</button>
+    <button data-col="2" aria-label="Column 3">3</button>
+    <button data-col="3" aria-label="Column 4">4</button>
+    <button data-col="4" aria-label="Column 5">5</button>
+    <button data-col="5" aria-label="Column 6">6</button>
+    <button data-col="6" aria-label="Column 7">7</button>
   </div>
 
   <div id="overlay">
     <div id="modal">
       <h2 id="mtitle">Game Over</h2>
       <p id="mmsg"></p>
-      <button id="btn-again">Play Again</button>
+      <button id="btn-again" aria-label="Play again">Play Again</button>
     </div>
   </div>
 
@@ -291,6 +393,9 @@
     renderer.toneMappingExposure = 1.1;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
+    // Accessibility: provide a label for the canvas
+    renderer.domElement.setAttribute('aria-label', '3D Connect Four game board with 6 rows and 7 columns');
+    renderer.domElement.setAttribute('role', 'img');
 
     // --- Scene ---
     const scene = new THREE.Scene();
@@ -315,6 +420,14 @@
     controls.maxDistance = 24;
     controls.minPolarAngle = Math.PI * 0.15;
     controls.maxPolarAngle = Math.PI * 0.62;
+
+    // Improve touch interaction
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      controls.dampingFactor = 0.1; // smoother deceleration for touch
+      // Reduce rotation speed for more precise control
+      controls.rotateSpeed = 0.8;
+      controls.zoomSpeed = 0.8;
+    }
 
     /* ================================================================
        LIGHTING - three-point studio setup
@@ -953,8 +1066,16 @@
 
     function colFromPointer(e) {
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse2.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse2.y = ((e.clientY - rect.top) / rect.height) * -2 + 1;
+      let clientX, clientY;
+      if (e.touches && e.touches.length) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      mouse2.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      mouse2.y = ((clientY - rect.top) / rect.height) * -2 + 1;
       raycaster.setFromCamera(mouse2, camera);
       const hits = raycaster.intersectObject(hitPlane);
       if (!hits.length) return -1;
@@ -965,7 +1086,7 @@
     /* ================================================================
        POINTER EVENTS
        ================================================================ */
-    renderer.domElement.addEventListener('mousemove', e => {
+    function handlePointerMove(e) {
       const col = colFromPointer(e);
       const canPlay = !over && !busy && turn === P1;
       colHL.forEach((h, i) => h.material.opacity = (canPlay && i === col) ? 0.07 : 0);
@@ -975,14 +1096,29 @@
       } else {
         ghostMesh.visible = false;
       }
-    });
+    }
 
-    renderer.domElement.addEventListener('click', e => playerDrop(colFromPointer(e)));
-
-    renderer.domElement.addEventListener('mouseleave', () => {
+    function handlePointerLeave() {
       ghostMesh.visible = false;
       colHL.forEach(h => h.material.opacity = 0);
+    }
+
+    renderer.domElement.addEventListener('mousemove', handlePointerMove);
+    renderer.domElement.addEventListener('touchmove', e => {
+      e.preventDefault(); // prevent scrolling
+      handlePointerMove(e);
+    }, { passive: false });
+
+    renderer.domElement.addEventListener('click', e => playerDrop(colFromPointer(e)));
+    renderer.domElement.addEventListener('touchstart', e => {
+      e.preventDefault(); // prevent double tap zoom
+      const col = colFromPointer(e);
+      if (col >= 0) playerDrop(col);
     });
+
+    renderer.domElement.addEventListener('mouseleave', handlePointerLeave);
+    renderer.domElement.addEventListener('touchend', handlePointerLeave);
+    renderer.domElement.addEventListener('touchcancel', handlePointerLeave);
 
     /* ================================================================
        BUTTONS
@@ -990,6 +1126,17 @@
     document.getElementById('btn-undo').addEventListener('click', doUndo);
     document.getElementById('btn-new').addEventListener('click', initGame);
     document.getElementById('btn-again').addEventListener('click', initGame);
+
+    // Column buttons for mobile/touch
+    const colButtons = document.getElementById('column-buttons');
+    if (colButtons) {
+      for (const btn of colButtons.querySelectorAll('button')) {
+        btn.addEventListener('click', () => {
+          const col = parseInt(btn.dataset.col);
+          if (!isNaN(col)) playerDrop(col);
+        });
+      }
+    }
 
     /* ================================================================
        RESIZE
