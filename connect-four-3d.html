@@ -1,85 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connect Four 3D</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #1a1a2e; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
-canvas { display: block; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect Four 3D</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-#hud {
-  position: fixed; top: 0; left: 0; right: 0;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 28px;
-  background: linear-gradient(180deg, rgba(10,10,30,0.7) 0%, transparent 100%);
-  color: #fff; z-index: 10; pointer-events: none;
-}
-#hud > * { pointer-events: auto; }
-#status {
-  font-size: 1.15em; font-weight: 600;
-  display: flex; align-items: center; gap: 12px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-}
-.dot {
-  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
-  box-shadow: 0 0 10px 2px currentColor;
-}
-.btns { display: flex; gap: 10px; }
-button {
-  padding: 8px 20px; border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 10px; cursor: pointer; font-size: 0.88em;
-  background: rgba(255,255,255,0.08); color: #eee;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  transition: all 0.2s;
-}
-button:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.35); }
+    body {
+      background: #1a1a2e;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
 
-#overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6); z-index: 30;
-  justify-content: center; align-items: center;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
-#overlay.show { display: flex; }
-#modal {
-  background: rgba(22,27,46,0.95); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 24px; padding: 56px 72px; text-align: center; color: #fff;
-  box-shadow: 0 32px 100px rgba(0,0,0,0.8);
-}
-#modal h2 { font-size: 2.6em; margin-bottom: 12px; letter-spacing: -0.02em; }
-#modal p  { color: #aaa; margin-bottom: 32px; font-size: 1.1em; }
-#btn-again {
-  padding: 14px 40px; font-size: 1em; font-weight: 600;
-  background: linear-gradient(135deg, #4a7cf7, #3b5fe8); border: none; border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(59,95,232,0.4);
-}
-#btn-again:hover { background: linear-gradient(135deg, #6190ff, #4a70f5); }
-</style>
+    canvas {
+      display: block;
+    }
+
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 28px;
+      background: linear-gradient(180deg, rgba(10, 10, 30, 0.7) 0%, transparent 100%);
+      color: #fff;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #hud>* {
+      pointer-events: auto;
+    }
+
+    #status {
+      font-size: 1.15em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px 2px currentColor;
+    }
+
+    .btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88em;
+      background: rgba(255, 255, 255, 0.08);
+      color: #eee;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 30;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    #overlay.show {
+      display: flex;
+    }
+
+    #modal {
+      background: rgba(22, 27, 46, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 56px 72px;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8);
+    }
+
+    #modal h2 {
+      font-size: 2.6em;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    #modal p {
+      color: #aaa;
+      margin-bottom: 32px;
+      font-size: 1.1em;
+    }
+
+    #btn-again {
+      padding: 14px 40px;
+      font-size: 1em;
+      font-weight: 600;
+      background: linear-gradient(135deg, #4a7cf7, #3b5fe8);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(59, 95, 232, 0.4);
+    }
+
+    #btn-again:hover {
+      background: linear-gradient(135deg, #6190ff, #4a70f5);
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="hud">
-  <div id="status">
-    <div class="dot" id="pdot" style="background:#d4213d; color:#d4213d"></div>
-    <span id="stxt">Your turn (Red)</span>
+  <div id="hud">
+    <div id="status">
+      <div class="dot" id="pdot" style="background:#d4213d; color:#d4213d"></div>
+      <span id="stxt">Your turn (Red)</span>
+    </div>
+    <div class="btns">
+      <button id="btn-undo">Undo</button>
+      <button id="btn-new">New Game</button>
+    </div>
   </div>
-  <div class="btns">
-    <button id="btn-undo">Undo</button>
-    <button id="btn-new">New Game</button>
-  </div>
-</div>
 
-<div id="overlay">
-  <div id="modal">
-    <h2 id="mtitle">Game Over</h2>
-    <p  id="mmsg"></p>
-    <button id="btn-again">Play Again</button>
+  <div id="overlay">
+    <div id="modal">
+      <h2 id="mtitle">Game Over</h2>
+      <p id="mmsg"></p>
+      <button id="btn-again">Play Again</button>
+    </div>
   </div>
-</div>
 
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "three":        "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -88,875 +165,876 @@ button:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255
 }
 </script>
 
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-/* ================================================================
-   GAME CONSTANTS
-   ================================================================ */
-const ROWS = 6, COLS = 7;
-const EMPTY = 2, P1 = 0, P2 = 1;
-const AI_DEPTH = 6;
+    /* ================================================================
+       GAME CONSTANTS
+       ================================================================ */
+    const ROWS = 6, COLS = 7;
+    const EMPTY = 2, P1 = 0, P2 = 1;
+    const AI_DEPTH = 6;
 
-/* ================================================================
-   BOARD LOGIC (direct port from connect-four-game.c)
-   ================================================================ */
-const newBoard = () => Array.from({ length: COLS }, () => Array(ROWS).fill(EMPTY));
+    /* ================================================================
+       BOARD LOGIC (direct port from connect-four-game.c)
+       ================================================================ */
+    const newBoard = () => Array.from({ length: COLS }, () => Array(ROWS).fill(EMPTY));
 
-function colHeight(b, c) { let h = 0; while (h < ROWS && b[c][h] !== EMPTY) h++; return h; }
+    function colHeight(b, c) { let h = 0; while (h < ROWS && b[c][h] !== EMPTY) h++; return h; }
 
-function insert(b, col, player) {
-  const row = colHeight(b, col);
-  if (row >= ROWS) return -1;
-  b[col][row] = player;
-  return row;
-}
-
-function remove(b, col) {
-  const row = colHeight(b, col) - 1;
-  if (row >= 0) b[col][row] = EMPTY;
-}
-
-function isWin(b, col, row) {
-  const p = b[col][row];
-  const axes = [[[1,0],[-1,0]], [[0,1],[0,-1]], [[1,1],[-1,-1]], [[1,-1],[-1,1]]];
-  for (const [da, db] of axes) {
-    let n = 1;
-    for (const [dc, dr] of [da, db]) {
-      let c = col + dc, r = row + dr;
-      while (c >= 0 && c < COLS && r >= 0 && r < ROWS && b[c][r] === p) { n++; c += dc; r += dr; }
+    function insert(b, col, player) {
+      const row = colHeight(b, col);
+      if (row >= ROWS) return -1;
+      b[col][row] = player;
+      return row;
     }
-    if (n >= 4) return true;
-  }
-  return false;
-}
 
-const isFull = b => b.every(col => col.every(v => v !== EMPTY));
+    function remove(b, col) {
+      const row = colHeight(b, col) - 1;
+      if (row >= 0) b[col][row] = EMPTY;
+    }
 
-/* ================================================================
-   AI - minimax with alpha-beta (ported from opponent.c)
-   ================================================================ */
-const SCORE = [0, 1, 3, 8, 200];
+    function isWin(b, col, row) {
+      const p = b[col][row];
+      const axes = [[[1, 0], [-1, 0]], [[0, 1], [0, -1]], [[1, 1], [-1, -1]], [[1, -1], [-1, 1]]];
+      for (const [da, db] of axes) {
+        let n = 1;
+        for (const [dc, dr] of [da, db]) {
+          let c = col + dc, r = row + dr;
+          while (c >= 0 && c < COLS && r >= 0 && r < ROWS && b[c][r] === p) { n++; c += dc; r += dr; }
+        }
+        if (n >= 4) return true;
+      }
+      return false;
+    }
 
-function evalBoard(b) {
-  let s = 0;
-  const at = (c, r) => (c >= 0 && c < COLS && r >= 0 && r < ROWS) ? b[c][r] : EMPTY;
-  const win4 = w => {
-    let p = 0, q = 0;
-    for (const v of w) v === P1 ? p++ : v === P2 ? q++ : 0;
-    return (p && q) ? 0 : p ? SCORE[p] : -SCORE[q];
-  };
-  for (let r = 0; r < ROWS; r++)
+    const isFull = b => b.every(col => col.every(v => v !== EMPTY));
+
+    /* ================================================================
+       AI - minimax with alpha-beta (ported from opponent.c)
+       ================================================================ */
+    const SCORE = [0, 1, 3, 8, 200];
+
+    function evalBoard(b) {
+      let s = 0;
+      const at = (c, r) => (c >= 0 && c < COLS && r >= 0 && r < ROWS) ? b[c][r] : EMPTY;
+      const win4 = w => {
+        let p = 0, q = 0;
+        for (const v of w) v === P1 ? p++ : v === P2 ? q++ : 0;
+        return (p && q) ? 0 : p ? SCORE[p] : -SCORE[q];
+      };
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          if (c + 3 < COLS) s += win4([at(c, r), at(c + 1, r), at(c + 2, r), at(c + 3, r)]);
+          if (r + 3 < ROWS) s += win4([at(c, r), at(c, r + 1), at(c, r + 2), at(c, r + 3)]);
+          if (c + 3 < COLS && r + 3 < ROWS) s += win4([at(c, r), at(c + 1, r + 1), at(c + 2, r + 2), at(c + 3, r + 3)]);
+          if (c + 3 < COLS && r - 3 >= 0) s += win4([at(c, r), at(c + 1, r - 1), at(c + 2, r - 2), at(c + 3, r - 3)]);
+        }
+      return s;
+    }
+
+    function minimax(b, depth, alpha, beta, player) {
+      if (depth === 0) return evalBoard(b);
+      const max = player === P1;
+      let best = max ? -Infinity : Infinity;
+      for (let c = 0; c < COLS; c++) {
+        if (colHeight(b, c) >= ROWS) continue;
+        const row = insert(b, c, player);
+        const val = isWin(b, c, row) ? evalBoard(b)
+          : minimax(b, depth - 1, alpha, beta, player === P1 ? P2 : P1);
+        remove(b, c);
+        if (max) { if (val > best) best = val; if (best > alpha) alpha = best; }
+        else { if (val < best) best = val; if (best < beta) beta = best; }
+        if (alpha >= beta) break;
+      }
+      return best;
+    }
+
+    function aiPickCol(b) {
+      const bc = b.map(c => [...c]);
+      let best = Infinity, col = Math.floor(COLS / 2);
+      for (let c = 0; c < COLS; c++) {
+        if (colHeight(bc, c) >= ROWS) continue;
+        const row = insert(bc, c, P2);
+        const val = isWin(bc, c, row) ? evalBoard(bc)
+          : minimax(bc, AI_DEPTH - 1, -Infinity, Infinity, P1);
+        remove(bc, c);
+        if (val < best) { best = val; col = c; }
+      }
+      return col;
+    }
+
+    /* ================================================================
+       THREE.JS SCENE
+       ================================================================ */
+    const CELL = 1.15;
+    const BW = COLS * CELL + 0.6;
+    const BH = ROWS * CELL + 0.6;
+    const BD = 0.20;
+    const CHIP_R = 0.44;
+    const CHIP_T = 0.26;
+    const colX = c => (c - (COLS - 1) / 2) * CELL;
+    const rowY = r => (r - (ROWS - 1) / 2) * CELL;
+
+    const P1_COL = 0xd4213d;
+    const P2_COL = 0xf5c400;
+
+    // --- Renderer ---
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    // --- Scene ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+    scene.fog = new THREE.FogExp2(0x1a1a2e, 0.022);
+
+    // --- IBL ---
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+
+    // --- Camera ---
+    const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 120);
+    camera.position.set(0, 4.5, 15);
+
+    // --- Orbit controls ---
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0.3, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.minDistance = 8;
+    controls.maxDistance = 24;
+    controls.minPolarAngle = Math.PI * 0.15;
+    controls.maxPolarAngle = Math.PI * 0.62;
+
+    /* ================================================================
+       LIGHTING - three-point studio setup
+       ================================================================ */
+    // Warm ambient fill
+    scene.add(new THREE.AmbientLight(0xc4b8a0, 0.35));
+
+    // Key light (warm, upper-right)
+    const keyLight = new THREE.DirectionalLight(0xfff0dd, 2.0);
+    keyLight.position.set(8, 14, 10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.near = 1;
+    keyLight.shadow.camera.far = 40;
+    keyLight.shadow.camera.left = -12;
+    keyLight.shadow.camera.right = 12;
+    keyLight.shadow.camera.top = 12;
+    keyLight.shadow.camera.bottom = -12;
+    keyLight.shadow.bias = -0.001;
+    keyLight.shadow.normalBias = 0.02;
+    scene.add(keyLight);
+
+    // Fill light (cool, left)
+    const fillLight = new THREE.DirectionalLight(0x8ab4f8, 0.6);
+    fillLight.position.set(-7, 5, 8);
+    scene.add(fillLight);
+
+    // Rim/back light
+    const rimLight = new THREE.DirectionalLight(0xeeddff, 0.5);
+    rimLight.position.set(0, 3, -10);
+    scene.add(rimLight);
+
+    // Subtle warm point light below board for under-glow
+    const underGlow = new THREE.PointLight(0xff9944, 0.3, 15);
+    underGlow.position.set(0, -4, 2);
+    scene.add(underGlow);
+
+    /* ================================================================
+       TABLE SURFACE
+       ================================================================ */
+    const tableGeo = new THREE.CylinderGeometry(18, 18, 0.3, 64);
+    const tableMat = new THREE.MeshStandardMaterial({
+      color: 0x2a1f14,
+      roughness: 0.65,
+      metalness: 0.05,
+    });
+    const table = new THREE.Mesh(tableGeo, tableMat);
+    table.position.y = -BH / 2 - 2.3;
+    table.receiveShadow = true;
+    scene.add(table);
+
+    /* ================================================================
+       BOARD - glossy blue plastic with rounded profile
+       ================================================================ */
+    const boardGroup = new THREE.Group();
+    scene.add(boardGroup);
+
+    // Board body with slight bevel
+    const boardShape = new THREE.Shape();
+    const bw2 = BW / 2, bh2 = BH / 2, bevel = 0.18;
+    boardShape.moveTo(-bw2 + bevel, -bh2);
+    boardShape.lineTo(bw2 - bevel, -bh2);
+    boardShape.quadraticCurveTo(bw2, -bh2, bw2, -bh2 + bevel);
+    boardShape.lineTo(bw2, bh2 - bevel);
+    boardShape.quadraticCurveTo(bw2, bh2, bw2 - bevel, bh2);
+    boardShape.lineTo(-bw2 + bevel, bh2);
+    boardShape.quadraticCurveTo(-bw2, bh2, -bw2, bh2 - bevel);
+    boardShape.lineTo(-bw2, -bh2 + bevel);
+    boardShape.quadraticCurveTo(-bw2, -bh2, -bw2 + bevel, -bh2);
+
+    // Punch holes in the board shape
     for (let c = 0; c < COLS; c++) {
-      if (c + 3 < COLS)           s += win4([at(c,r), at(c+1,r),   at(c+2,r),   at(c+3,r)]);
-      if (r + 3 < ROWS)           s += win4([at(c,r), at(c,r+1),   at(c,r+2),   at(c,r+3)]);
-      if (c+3<COLS && r+3<ROWS)   s += win4([at(c,r), at(c+1,r+1), at(c+2,r+2), at(c+3,r+3)]);
-      if (c+3<COLS && r-3>=0)     s += win4([at(c,r), at(c+1,r-1), at(c+2,r-2), at(c+3,r-3)]);
+      for (let r = 0; r < ROWS; r++) {
+        const holePath = new THREE.Path();
+        const holeR = CHIP_R + 0.02;
+        holePath.absarc(colX(c), rowY(r), holeR, 0, Math.PI * 2, false);
+        boardShape.holes.push(holePath);
+      }
     }
-  return s;
-}
 
-function minimax(b, depth, alpha, beta, player) {
-  if (depth === 0) return evalBoard(b);
-  const max = player === P1;
-  let best = max ? -Infinity : Infinity;
-  for (let c = 0; c < COLS; c++) {
-    if (colHeight(b, c) >= ROWS) continue;
-    const row = insert(b, c, player);
-    const val = isWin(b, c, row) ? evalBoard(b)
-                                 : minimax(b, depth - 1, alpha, beta, player === P1 ? P2 : P1);
-    remove(b, c);
-    if (max) { if (val > best) best = val; if (best > alpha) alpha = best; }
-    else     { if (val < best) best = val; if (best < beta)  beta  = best; }
-    if (alpha >= beta) break;
-  }
-  return best;
-}
-
-function aiPickCol(b) {
-  const bc = b.map(c => [...c]);
-  let best = Infinity, col = Math.floor(COLS / 2);
-  for (let c = 0; c < COLS; c++) {
-    if (colHeight(bc, c) >= ROWS) continue;
-    const row = insert(bc, c, P2);
-    const val = isWin(bc, c, row) ? evalBoard(bc)
-                                  : minimax(bc, AI_DEPTH - 1, -Infinity, Infinity, P1);
-    remove(bc, c);
-    if (val < best) { best = val; col = c; }
-  }
-  return col;
-}
-
-/* ================================================================
-   THREE.JS SCENE
-   ================================================================ */
-const CELL   = 1.15;
-const BW     = COLS * CELL + 0.6;
-const BH     = ROWS * CELL + 0.6;
-const BD     = 0.80;
-const CHIP_R = 0.44;
-const CHIP_T = 0.26;
-const colX   = c => (c - (COLS - 1) / 2) * CELL;
-const rowY   = r => (r - (ROWS - 1) / 2) * CELL;
-
-const P1_COL = 0xd4213d;
-const P2_COL = 0xf5c400;
-
-// --- Renderer ---
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-document.body.appendChild(renderer.domElement);
-
-// --- Scene ---
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1a1a2e);
-scene.fog = new THREE.FogExp2(0x1a1a2e, 0.022);
-
-// --- IBL ---
-const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-pmrem.dispose();
-
-// --- Camera ---
-const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 120);
-camera.position.set(0, 4.5, 15);
-
-// --- Orbit controls ---
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0.3, 0);
-controls.enableDamping = true;
-controls.dampingFactor = 0.07;
-controls.minDistance = 8;
-controls.maxDistance = 24;
-controls.minPolarAngle = Math.PI * 0.15;
-controls.maxPolarAngle = Math.PI * 0.62;
-
-/* ================================================================
-   LIGHTING - three-point studio setup
-   ================================================================ */
-// Warm ambient fill
-scene.add(new THREE.AmbientLight(0xc4b8a0, 0.35));
-
-// Key light (warm, upper-right)
-const keyLight = new THREE.DirectionalLight(0xfff0dd, 2.0);
-keyLight.position.set(8, 14, 10);
-keyLight.castShadow = true;
-keyLight.shadow.mapSize.set(2048, 2048);
-keyLight.shadow.camera.near = 1;
-keyLight.shadow.camera.far = 40;
-keyLight.shadow.camera.left = -12;
-keyLight.shadow.camera.right = 12;
-keyLight.shadow.camera.top = 12;
-keyLight.shadow.camera.bottom = -12;
-keyLight.shadow.bias = -0.001;
-keyLight.shadow.normalBias = 0.02;
-scene.add(keyLight);
-
-// Fill light (cool, left)
-const fillLight = new THREE.DirectionalLight(0x8ab4f8, 0.6);
-fillLight.position.set(-7, 5, 8);
-scene.add(fillLight);
-
-// Rim/back light
-const rimLight = new THREE.DirectionalLight(0xeeddff, 0.5);
-rimLight.position.set(0, 3, -10);
-scene.add(rimLight);
-
-// Subtle warm point light below board for under-glow
-const underGlow = new THREE.PointLight(0xff9944, 0.3, 15);
-underGlow.position.set(0, -4, 2);
-scene.add(underGlow);
-
-/* ================================================================
-   TABLE SURFACE
-   ================================================================ */
-const tableGeo = new THREE.CylinderGeometry(18, 18, 0.3, 64);
-const tableMat = new THREE.MeshStandardMaterial({
-  color: 0x2a1f14,
-  roughness: 0.65,
-  metalness: 0.05,
-});
-const table = new THREE.Mesh(tableGeo, tableMat);
-table.position.y = -BH / 2 - 2.3;
-table.receiveShadow = true;
-scene.add(table);
-
-/* ================================================================
-   BOARD - glossy blue plastic with rounded profile
-   ================================================================ */
-const boardGroup = new THREE.Group();
-scene.add(boardGroup);
-
-// Board body with slight bevel
-const boardShape = new THREE.Shape();
-const bw2 = BW / 2, bh2 = BH / 2, bevel = 0.18;
-boardShape.moveTo(-bw2 + bevel, -bh2);
-boardShape.lineTo( bw2 - bevel, -bh2);
-boardShape.quadraticCurveTo(bw2, -bh2, bw2, -bh2 + bevel);
-boardShape.lineTo( bw2, bh2 - bevel);
-boardShape.quadraticCurveTo(bw2, bh2, bw2 - bevel, bh2);
-boardShape.lineTo(-bw2 + bevel, bh2);
-boardShape.quadraticCurveTo(-bw2, bh2, -bw2, bh2 - bevel);
-boardShape.lineTo(-bw2, -bh2 + bevel);
-boardShape.quadraticCurveTo(-bw2, -bh2, -bw2 + bevel, -bh2);
-
-// Punch holes in the board shape
-for (let c = 0; c < COLS; c++) {
-  for (let r = 0; r < ROWS; r++) {
-    const holePath = new THREE.Path();
-    const holeR = CHIP_R + 0.02;
-    holePath.absarc(colX(c), rowY(r), holeR, 0, Math.PI * 2, false);
-    boardShape.holes.push(holePath);
-  }
-}
-
-const extrudeSettings = {
-  depth: BD,
-  bevelEnabled: true,
-  bevelThickness: 0.06,
-  bevelSize: 0.06,
-  bevelSegments: 3,
-};
-const boardGeo = new THREE.ExtrudeGeometry(boardShape, extrudeSettings);
-const boardMat = new THREE.MeshPhysicalMaterial({
-  color: 0x1565c0,
-  roughness: 0.22,
-  metalness: 0.02,
-  clearcoat: 0.9,
-  clearcoatRoughness: 0.15,
-  envMapIntensity: 1.0,
-});
-const boardMesh = new THREE.Mesh(boardGeo, boardMat);
-boardMesh.rotation.x = 0;
-boardMesh.position.z = -BD / 2;
-boardMesh.castShadow = true;
-boardMesh.receiveShadow = true;
-boardGroup.add(boardMesh);
-
-// Inner hole walls - dark plastic rings for depth
-const holeWallGeo = new THREE.CylinderGeometry(CHIP_R + 0.02, CHIP_R + 0.02, BD + 0.14, 32, 1, true);
-const holeWallMat = new THREE.MeshStandardMaterial({
-  color: 0x0a0e18,
-  roughness: 0.85,
-  metalness: 0.0,
-  side: THREE.BackSide,
-});
-for (let c = 0; c < COLS; c++) {
-  for (let r = 0; r < ROWS; r++) {
-    const hw = new THREE.Mesh(holeWallGeo, holeWallMat);
-    hw.rotation.x = Math.PI / 2;
-    hw.position.set(colX(c), rowY(r), 0);
-    boardGroup.add(hw);
-  }
-}
-
-// Board frame - subtle rim around the edge
-const frameMat = new THREE.MeshPhysicalMaterial({
-  color: 0x0d47a1,
-  roughness: 0.3,
-  metalness: 0.1,
-  clearcoat: 0.7,
-  clearcoatRoughness: 0.2,
-});
-
-// Top trim
-const trimGeo = new THREE.BoxGeometry(BW + 0.14, 0.22, BD + 0.14);
-const topTrim = new THREE.Mesh(trimGeo, frameMat);
-topTrim.position.y = bh2 + 0.11;
-topTrim.castShadow = true;
-boardGroup.add(topTrim);
-
-// Bottom trim
-const botTrim = new THREE.Mesh(trimGeo, frameMat);
-botTrim.position.y = -bh2 - 0.11;
-botTrim.castShadow = true;
-boardGroup.add(botTrim);
-
-// Side trims
-const sideTrimGeo = new THREE.BoxGeometry(0.22, BH + 0.44, BD + 0.14);
-const leftTrim = new THREE.Mesh(sideTrimGeo, frameMat);
-leftTrim.position.x = -bw2 - 0.11;
-leftTrim.castShadow = true;
-boardGroup.add(leftTrim);
-
-const rightTrim = new THREE.Mesh(sideTrimGeo, frameMat);
-rightTrim.position.x = bw2 + 0.11;
-rightTrim.castShadow = true;
-boardGroup.add(rightTrim);
-
-// Board stand - two sturdy legs + cross bar
-const legMat = new THREE.MeshPhysicalMaterial({
-  color: 0x0d47a1, roughness: 0.35, metalness: 0.08,
-  clearcoat: 0.5, clearcoatRoughness: 0.25,
-});
-for (const side of [-1, 1]) {
-  const legX = side * (BW / 2 - 0.5);
-  const leg = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 2.0, 0.6),
-    legMat
-  );
-  leg.position.set(legX, -BH / 2 - 1.0, 0);
-  leg.castShadow = true;
-  boardGroup.add(leg);
-
-  // Foot pad
-  const foot = new THREE.Mesh(
-    new THREE.BoxGeometry(0.7, 0.14, 0.8),
-    legMat
-  );
-  foot.position.set(legX, -BH / 2 - 1.97, 0);
-  foot.castShadow = true;
-  boardGroup.add(foot);
-}
-// Cross bar
-const crossBar = new THREE.Mesh(
-  new THREE.BoxGeometry(BW - 0.8, 0.3, 0.5),
-  legMat
-);
-crossBar.position.set(0, -BH / 2 - 1.7, 0);
-crossBar.castShadow = true;
-boardGroup.add(crossBar);
-
-/* ================================================================
-   RAYCASTING
-   ================================================================ */
-const hitPlane = new THREE.Mesh(
-  new THREE.PlaneGeometry(BW + 2, BH + 5),
-  new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
-);
-hitPlane.position.z = BD / 2 + 0.12;
-scene.add(hitPlane);
-
-/* ================================================================
-   CHIP TEXTURES
-   ================================================================ */
-
-function capsulePath(ctx, hw, hl) {
-  ctx.beginPath();
-  ctx.moveTo(-hw, -hl + hw);
-  ctx.arcTo(-hw, -hl, 0, -hl, hw);
-  ctx.arcTo( hw, -hl,  hw, -hl + hw, hw);
-  ctx.lineTo( hw,  hl - hw);
-  ctx.arcTo( hw,  hl, 0,  hl, hw);
-  ctx.arcTo(-hw,  hl, -hw, hl - hw, hw);
-  ctx.closePath();
-}
-
-function chipBase(hexColor) {
-  const S = 512, cx = S / 2, cy = S / 2;
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = S;
-  const ctx = canvas.getContext('2d');
-  const rv = (hexColor >> 16) & 255, gv = (hexColor >> 8) & 255, bv = hexColor & 255;
-
-  // Clip to disc
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
-  ctx.clip();
-
-  // Base
-  ctx.fillStyle = `rgb(${rv},${gv},${bv})`;
-  ctx.fillRect(0, 0, S, S);
-
-  // Subtle plastic sheen from upper-left
-  const hi = ctx.createRadialGradient(cx - 50, cy - 60, 20, cx, cy, S / 2);
-  hi.addColorStop(0,   'rgba(255,255,255,0.18)');
-  hi.addColorStop(0.4, 'rgba(255,255,255,0.03)');
-  hi.addColorStop(1,   'rgba(0,0,0,0.15)');
-  ctx.fillStyle = hi;
-  ctx.fillRect(0, 0, S, S);
-
-  // Raised outer rim highlight
-  ctx.beginPath();
-  ctx.arc(cx, cy, S * 0.42, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,255,255,0.20)';
-  ctx.lineWidth = 8;
-  ctx.stroke();
-
-  // Engraved groove
-  ctx.beginPath();
-  ctx.arc(cx, cy, S * 0.385, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-  ctx.lineWidth = 7;
-  ctx.stroke();
-
-  // Inner recessed well
-  ctx.beginPath();
-  ctx.arc(cx, cy, S * 0.380, 0, Math.PI * 2);
-  const dR = Math.max(0, rv - 20), dG = Math.max(0, gv - 16), dB = Math.max(0, bv - 12);
-  ctx.fillStyle = `rgb(${dR},${dG},${dB})`;
-  ctx.fill();
-
-  ctx.restore();
-  return { canvas, ctx, S, cx, cy, rv, gv, bv };
-}
-
-function makeChipFrontTexture(hexColor) {
-  const { canvas, ctx, S, cx, cy, rv, gv, bv } = chipBase(hexColor);
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
-  ctx.clip();
-
-  const fontSize = Math.round(S * 0.44);
-  ctx.font = `bold ${fontSize}px "Arial Black", Impact, Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fillText('4', cx + 5, cy + 6);
-
-  // Highlight
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
-  ctx.fillText('4', cx - 2, cy - 3);
-
-  // Main
-  const lR = Math.min(255, rv + 22), lG = Math.min(255, gv + 18), lB = Math.min(255, bv + 14);
-  ctx.fillStyle = `rgb(${lR},${lG},${lB})`;
-  ctx.fillText('4', cx, cy + 1);
-
-  ctx.restore();
-  return new THREE.CanvasTexture(canvas);
-}
-
-function makeChipBackTexture(hexColor) {
-  const { canvas, ctx, S, cx, cy, rv, gv, bv } = chipBase(hexColor);
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
-  ctx.clip();
-
-  const lR = Math.min(255, rv + 22), lG = Math.min(255, gv + 18), lB = Math.min(255, bv + 14);
-  const lighter = `rgb(${lR},${lG},${lB})`;
-  const hw = S * 0.10, hl = S * 0.30;
-
-  // Shadow pass
-  ctx.fillStyle = 'rgba(0,0,0,0.30)';
-  for (const rot of [0, Math.PI / 2]) {
-    ctx.save(); ctx.translate(cx + 4, cy + 4); ctx.rotate(rot);
-    capsulePath(ctx, hw, hl); ctx.fill(); ctx.restore();
-  }
-  // Main pass
-  ctx.fillStyle = lighter;
-  for (const rot of [0, Math.PI / 2]) {
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
-    capsulePath(ctx, hw, hl); ctx.fill(); ctx.restore();
-  }
-  // Boss
-  const br = S * 0.075;
-  ctx.beginPath(); ctx.arc(cx + 3, cy + 3, br, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy, br, 0, Math.PI * 2);
-  ctx.fillStyle = lighter; ctx.fill();
-
-  ctx.restore();
-  return new THREE.CanvasTexture(canvas);
-}
-
-const chipFrontTex = { [P1]: makeChipFrontTexture(P1_COL), [P2]: makeChipFrontTexture(P2_COL) };
-const chipBackTex  = { [P1]: makeChipBackTexture(P1_COL),  [P2]: makeChipBackTexture(P2_COL) };
-
-/* ================================================================
-   CHIP GEOMETRY - scalloped edge baked into LatheGeometry
-   ================================================================ */
-
-// Create a chip profile for LatheGeometry with scalloped outer edge
-function makeChipGeo() {
-  const r = CHIP_R;
-  const halfT = CHIP_T / 2;
-  const segments = 64;
-
-  // Build the chip as a cylinder with groups for materials:
-  // group 0 = barrel (sides), group 1 = top cap, group 2 = bottom cap
-  const geo = new THREE.CylinderGeometry(r, r, CHIP_T, segments);
-  return geo;
-}
-
-// Scallop bump ring geometry (shared)
-const SCALLOP_N = 28;
-const sclopGeo = new THREE.SphereGeometry(0.048, 10, 6);
-
-const chipGeo = makeChipGeo();
-
-/* ================================================================
-   GHOST CHIP
-   ================================================================ */
-const ghostMat = new THREE.MeshPhysicalMaterial({
-  color: P1_COL, transparent: true, opacity: 0.30,
-  emissive: P1_COL, emissiveIntensity: 0.15,
-  metalness: 0.0, roughness: 0.45,
-  clearcoat: 0.3, clearcoatRoughness: 0.3,
-});
-const ghostMesh = new THREE.Mesh(chipGeo, ghostMat);
-ghostMesh.rotation.x = Math.PI / 2;
-ghostMesh.visible = false;
-scene.add(ghostMesh);
-
-/* ================================================================
-   COLUMN HIGHLIGHTS
-   ================================================================ */
-const colHL = Array.from({ length: COLS }, (_, c) => {
-  const m = new THREE.Mesh(
-    new THREE.BoxGeometry(CELL * 0.88, BH - 0.2, 0.02),
-    new THREE.MeshBasicMaterial({
-      color: 0xffffff, transparent: true, opacity: 0, depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
-  );
-  m.position.set(colX(c), 0, BD / 2 + 0.05);
-  scene.add(m);
-  return m;
-});
-
-/* ================================================================
-   CHIP MESH FACTORY
-   ================================================================ */
-const chipMeshes = [];
-
-function makeChip(player) {
-  const color = player === P1 ? P1_COL : P2_COL;
-
-  const sideMat = new THREE.MeshPhysicalMaterial({
-    color,
-    metalness: 0.0, roughness: 0.38,
-    clearcoat: 0.6, clearcoatRoughness: 0.2,
-    emissive: color, emissiveIntensity: 0.03,
-    envMapIntensity: 0.9,
-  });
-
-  const capMat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, map: chipFrontTex[player],
-    emissive: color, emissiveIntensity: 0.03,
-    metalness: 0.0, roughness: 0.38,
-    clearcoat: 0.5, clearcoatRoughness: 0.22,
-    envMapIntensity: 0.6,
-  });
-
-  const backCapMat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, map: chipBackTex[player],
-    emissive: color, emissiveIntensity: 0.03,
-    metalness: 0.0, roughness: 0.38,
-    clearcoat: 0.5, clearcoatRoughness: 0.22,
-    envMapIntensity: 0.6,
-  });
-
-  const group = new THREE.Group();
-  group.rotation.x = Math.PI / 2;
-
-  // Body with material groups
-  const body = new THREE.Mesh(chipGeo, [sideMat, capMat, backCapMat]);
-  body.castShadow = true;
-  body.receiveShadow = true;
-  group.add(body);
-
-  // Scalloped bumps around edge
-  for (let i = 0; i < SCALLOP_N; i++) {
-    const angle = (i / SCALLOP_N) * Math.PI * 2;
-    const bump = new THREE.Mesh(sclopGeo, sideMat);
-    bump.position.set(
-      Math.cos(angle) * (CHIP_R + 0.005),
-      0.06,
-      -Math.sin(angle) * (CHIP_R + 0.005)
+    const extrudeSettings = {
+      depth: BD,
+      bevelEnabled: true,
+      bevelThickness: 0.06,
+      bevelSize: 0.06,
+      bevelSegments: 3,
+    };
+    const boardGeo = new THREE.ExtrudeGeometry(boardShape, extrudeSettings);
+    const boardMat = new THREE.MeshPhysicalMaterial({
+      color: 0x1565c0,
+      roughness: 0.22,
+      metalness: 0.02,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.15,
+      envMapIntensity: 1.0,
+    });
+    const boardMesh = new THREE.Mesh(boardGeo, boardMat);
+    boardMesh.rotation.x = 0;
+    boardMesh.position.z = -BD / 2;
+    boardMesh.castShadow = true;
+    boardMesh.receiveShadow = true;
+    boardGroup.add(boardMesh);
+
+    // Inner hole walls - dark plastic rings for depth
+    const holeWallGeo = new THREE.CylinderGeometry(CHIP_R + 0.02, CHIP_R + 0.02, BD + 0.14, 32, 1, true);
+    const holeWallMat = new THREE.MeshStandardMaterial({
+      color: 0x0a0e18,
+      roughness: 0.85,
+      metalness: 0.0,
+      side: THREE.BackSide,
+    });
+    for (let c = 0; c < COLS; c++) {
+      for (let r = 0; r < ROWS; r++) {
+        const hw = new THREE.Mesh(holeWallGeo, holeWallMat);
+        hw.rotation.x = Math.PI / 2;
+        hw.position.set(colX(c), rowY(r), 0);
+        boardGroup.add(hw);
+      }
+    }
+
+    // Board frame - subtle rim around the edge
+    const frameMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0d47a1,
+      roughness: 0.3,
+      metalness: 0.1,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.2,
+    });
+
+    // Top trim
+    const trimGeo = new THREE.BoxGeometry(BW + 0.14, 0.22, BD + 0.14);
+    const topTrim = new THREE.Mesh(trimGeo, frameMat);
+    topTrim.position.y = bh2 + 0.11;
+    topTrim.castShadow = true;
+    boardGroup.add(topTrim);
+
+    // Bottom trim
+    const botTrim = new THREE.Mesh(trimGeo, frameMat);
+    botTrim.position.y = -bh2 - 0.11;
+    botTrim.castShadow = true;
+    boardGroup.add(botTrim);
+
+    // Side trims
+    const sideTrimGeo = new THREE.BoxGeometry(0.22, BH + 0.44, BD + 0.14);
+    const leftTrim = new THREE.Mesh(sideTrimGeo, frameMat);
+    leftTrim.position.x = -bw2 - 0.11;
+    leftTrim.castShadow = true;
+    boardGroup.add(leftTrim);
+
+    const rightTrim = new THREE.Mesh(sideTrimGeo, frameMat);
+    rightTrim.position.x = bw2 + 0.11;
+    rightTrim.castShadow = true;
+    boardGroup.add(rightTrim);
+
+    // Board stand - two sturdy legs + cross bar
+    const legMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0d47a1, roughness: 0.35, metalness: 0.08,
+      clearcoat: 0.5, clearcoatRoughness: 0.25,
+    });
+    for (const side of [-1, 1]) {
+      const legX = side * (BW / 2 - 0.5);
+      const leg = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 2.0, 0.6),
+        legMat
+      );
+      leg.position.set(legX, -BH / 2 - 1.0, 0);
+      leg.castShadow = true;
+      boardGroup.add(leg);
+
+      // Foot pad
+      const foot = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.14, 0.8),
+        legMat
+      );
+      foot.position.set(legX, -BH / 2 - 1.97, 0);
+      foot.castShadow = true;
+      boardGroup.add(foot);
+    }
+    // Cross bar
+    const crossBar = new THREE.Mesh(
+      new THREE.BoxGeometry(BW - 0.8, 0.3, 0.5),
+      legMat
     );
-    bump.castShadow = true;
-    group.add(bump);
-  }
+    crossBar.position.set(0, -BH / 2 - 1.7, 0);
+    crossBar.castShadow = true;
+    boardGroup.add(crossBar);
 
-  return { group, mats: [sideMat, capMat, backCapMat] };
-}
+    /* ================================================================
+       RAYCASTING
+       ================================================================ */
+    const hitPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(BW + 2, BH + 5),
+      new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
+    );
+    hitPlane.position.z = BD / 2 + 0.1;
+    scene.add(hitPlane);
 
-/* ================================================================
-   GAME STATE
-   ================================================================ */
-let board, turn, over, busy, history;
+    /* ================================================================
+       CHIP TEXTURES
+       ================================================================ */
 
-function initGame() {
-  board   = newBoard();
-  turn    = P1;
-  over    = false;
-  busy    = false;
-  history = [];
-  for (const { group } of chipMeshes) scene.remove(group);
-  chipMeshes.length = 0;
-  colHL.forEach(h => h.material.opacity = 0);
-  ghostMesh.visible = false;
-  // Remove sparkles
-  for (let i = sparkles.children.length - 1; i >= 0; i--)
-    sparkles.remove(sparkles.children[i]);
-  document.getElementById('overlay').classList.remove('show');
-  updateHUD();
-}
+    function capsulePath(ctx, hw, hl) {
+      ctx.beginPath();
+      ctx.moveTo(-hw, -hl + hw);
+      ctx.arcTo(-hw, -hl, 0, -hl, hw);
+      ctx.arcTo(hw, -hl, hw, -hl + hw, hw);
+      ctx.lineTo(hw, hl - hw);
+      ctx.arcTo(hw, hl, 0, hl, hw);
+      ctx.arcTo(-hw, hl, -hw, hl - hw, hw);
+      ctx.closePath();
+    }
 
-function updateHUD() {
-  const dot  = document.getElementById('pdot');
-  const text = document.getElementById('stxt');
-  if (turn === P1) {
-    dot.style.background = '#d4213d';
-    dot.style.color      = '#d4213d';
-    text.textContent     = 'Your turn (Red)';
-  } else {
-    dot.style.background = '#f5c400';
-    dot.style.color      = '#f5c400';
-    text.textContent     = 'AI is thinking\u2026';
-  }
-}
+    function chipBase(hexColor) {
+      const S = 512, cx = S / 2, cy = S / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = S;
+      const ctx = canvas.getContext('2d');
+      const rv = (hexColor >> 16) & 255, gv = (hexColor >> 8) & 255, bv = hexColor & 255;
 
-function showOver(title, msg) {
-  over = true;
-  document.getElementById('mtitle').textContent = title;
-  document.getElementById('mmsg').textContent   = msg;
-  document.getElementById('overlay').classList.add('show');
-}
+      // Clip to disc
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
+      ctx.clip();
 
-/* ================================================================
-   DROP ANIMATION (spring bounce)
-   ================================================================ */
-const GRAVITY  = -0.032;
-const BOUNCE   = 0.25;
-const VEL_STOP = 0.005;
+      // Base
+      ctx.fillStyle = `rgb(${rv},${gv},${bv})`;
+      ctx.fillRect(0, 0, S, S);
 
-function dropChip(col, player, onDone) {
-  insert(board, col, player);
-  const row = colHeight(board, col) - 1;
-  const { group, mats } = makeChip(player);
+      // Subtle plastic sheen from upper-left
+      const hi = ctx.createRadialGradient(cx - 50, cy - 60, 20, cx, cy, S / 2);
+      hi.addColorStop(0, 'rgba(255,255,255,0.18)');
+      hi.addColorStop(0.4, 'rgba(255,255,255,0.03)');
+      hi.addColorStop(1, 'rgba(0,0,0,0.15)');
+      ctx.fillStyle = hi;
+      ctx.fillRect(0, 0, S, S);
 
-  let y = rowY(ROWS - 1) + CELL * 2.5;
-  let vy = 0, bounces = 0;
-  const ty = rowY(row);
+      // Raised outer rim highlight
+      ctx.beginPath();
+      ctx.arc(cx, cy, S * 0.42, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+      ctx.lineWidth = 8;
+      ctx.stroke();
 
-  group.position.set(colX(col), y, BD / 2 - 0.06);
-  scene.add(group);
-  chipMeshes.push({ group, mats, col, row });
+      // Engraved groove
+      ctx.beginPath();
+      ctx.arc(cx, cy, S * 0.385, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = 7;
+      ctx.stroke();
 
-  function tick() {
-    vy += GRAVITY;
-    y  += vy;
-    if (y <= ty) {
-      if (Math.abs(vy) > VEL_STOP && bounces < 3) {
-        vy = -vy * BOUNCE; y = ty; bounces++;
+      // Inner recessed well
+      ctx.beginPath();
+      ctx.arc(cx, cy, S * 0.380, 0, Math.PI * 2);
+      const dR = Math.max(0, rv - 20), dG = Math.max(0, gv - 16), dB = Math.max(0, bv - 12);
+      ctx.fillStyle = `rgb(${dR},${dG},${dB})`;
+      ctx.fill();
+
+      ctx.restore();
+      return { canvas, ctx, S, cx, cy, rv, gv, bv };
+    }
+
+    function makeChipFrontTexture(hexColor) {
+      const { canvas, ctx, S, cx, cy, rv, gv, bv } = chipBase(hexColor);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      const fontSize = Math.round(S * 0.44);
+      ctx.font = `bold ${fontSize}px "Arial Black", Impact, Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillText('4', cx + 5, cy + 6);
+
+      // Highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fillText('4', cx - 2, cy - 3);
+
+      // Main
+      const lR = Math.min(255, rv + 22), lG = Math.min(255, gv + 18), lB = Math.min(255, bv + 14);
+      ctx.fillStyle = `rgb(${lR},${lG},${lB})`;
+      ctx.fillText('4', cx, cy + 1);
+
+      ctx.restore();
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function makeChipBackTexture(hexColor) {
+      const { canvas, ctx, S, cx, cy, rv, gv, bv } = chipBase(hexColor);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      const lR = Math.min(255, rv + 22), lG = Math.min(255, gv + 18), lB = Math.min(255, bv + 14);
+      const lighter = `rgb(${lR},${lG},${lB})`;
+      const hw = S * 0.10, hl = S * 0.30;
+
+      // Shadow pass
+      ctx.fillStyle = 'rgba(0,0,0,0.30)';
+      for (const rot of [0, Math.PI / 2]) {
+        ctx.save(); ctx.translate(cx + 4, cy + 4); ctx.rotate(rot);
+        capsulePath(ctx, hw, hl); ctx.fill(); ctx.restore();
+      }
+      // Main pass
+      ctx.fillStyle = lighter;
+      for (const rot of [0, Math.PI / 2]) {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
+        capsulePath(ctx, hw, hl); ctx.fill(); ctx.restore();
+      }
+      // Boss
+      const br = S * 0.075;
+      ctx.beginPath(); ctx.arc(cx + 3, cy + 3, br, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, br, 0, Math.PI * 2);
+      ctx.fillStyle = lighter; ctx.fill();
+
+      ctx.restore();
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    const chipFrontTex = { [P1]: makeChipFrontTexture(P1_COL), [P2]: makeChipFrontTexture(P2_COL) };
+    const chipBackTex = { [P1]: makeChipBackTexture(P1_COL), [P2]: makeChipBackTexture(P2_COL) };
+
+    /* ================================================================
+       CHIP GEOMETRY - scalloped edge baked into LatheGeometry
+       ================================================================ */
+
+    // Create a chip profile for LatheGeometry with scalloped outer edge
+    function makeChipGeo() {
+      const r = CHIP_R;
+      const halfT = CHIP_T / 2;
+      const segments = 64;
+
+      // Build the chip as a cylinder with groups for materials:
+      // group 0 = barrel (sides), group 1 = top cap, group 2 = bottom cap
+      const geo = new THREE.CylinderGeometry(r, r, CHIP_T, segments);
+      return geo;
+    }
+
+    // Scallop bump ring geometry (shared)
+    const SCALLOP_N = 28;
+    const sclopGeo = new THREE.SphereGeometry(0.048, 10, 6);
+
+    const chipGeo = makeChipGeo();
+
+    /* ================================================================
+       GHOST CHIP
+       ================================================================ */
+    const ghostMat = new THREE.MeshPhysicalMaterial({
+      color: P1_COL, transparent: true, opacity: 0.30,
+      emissive: P1_COL, emissiveIntensity: 0.15,
+      metalness: 0.0, roughness: 0.45,
+      clearcoat: 0.3, clearcoatRoughness: 0.3,
+    });
+    const ghostMesh = new THREE.Mesh(chipGeo, ghostMat);
+    ghostMesh.rotation.x = Math.PI / 2;
+    ghostMesh.visible = false;
+    scene.add(ghostMesh);
+
+    /* ================================================================
+       COLUMN HIGHLIGHTS
+       ================================================================ */
+    const colHL = Array.from({ length: COLS }, (_, c) => {
+      const m = new THREE.Mesh(
+        new THREE.BoxGeometry(CELL * 0.88, BH - 0.2, 0.02),
+        new THREE.MeshBasicMaterial({
+          color: 0xffffff, transparent: true, opacity: 0, depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      m.position.set(colX(c), 0, BD / 2 + 0.08);
+      scene.add(m);
+      return m;
+    });
+
+    /* ================================================================
+       CHIP MESH FACTORY
+       ================================================================ */
+    const chipMeshes = [];
+
+    function makeChip(player) {
+      const color = player === P1 ? P1_COL : P2_COL;
+
+      const sideMat = new THREE.MeshPhysicalMaterial({
+        color,
+        metalness: 0.0, roughness: 0.38,
+        clearcoat: 0.6, clearcoatRoughness: 0.2,
+        emissive: color, emissiveIntensity: 0.03,
+        envMapIntensity: 0.9,
+      });
+
+      const capMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff, map: chipFrontTex[player],
+        emissive: color, emissiveIntensity: 0.03,
+        metalness: 0.0, roughness: 0.38,
+        clearcoat: 0.5, clearcoatRoughness: 0.22,
+        envMapIntensity: 0.6,
+      });
+
+      const backCapMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff, map: chipBackTex[player],
+        emissive: color, emissiveIntensity: 0.03,
+        metalness: 0.0, roughness: 0.38,
+        clearcoat: 0.5, clearcoatRoughness: 0.22,
+        envMapIntensity: 0.6,
+      });
+
+      const group = new THREE.Group();
+      group.rotation.x = Math.PI / 2;
+
+      // Body with material groups
+      const body = new THREE.Mesh(chipGeo, [sideMat, capMat, backCapMat]);
+      body.castShadow = true;
+      body.receiveShadow = true;
+      group.add(body);
+
+      // Scalloped bumps around edge
+      for (let i = 0; i < SCALLOP_N; i++) {
+        const angle = (i / SCALLOP_N) * Math.PI * 2;
+        const bump = new THREE.Mesh(sclopGeo, sideMat);
+        bump.position.set(
+          Math.cos(angle) * (CHIP_R + 0.005),
+          0.06,
+          -Math.sin(angle) * (CHIP_R + 0.005)
+        );
+        bump.castShadow = true;
+        group.add(bump);
+      }
+
+      return { group, mats: [sideMat, capMat, backCapMat] };
+    }
+
+    /* ================================================================
+       GAME STATE
+       ================================================================ */
+    let board, turn, over, busy, history;
+
+    function initGame() {
+      board = newBoard();
+      turn = P1;
+      over = false;
+      busy = false;
+      history = [];
+      for (const { group } of chipMeshes) scene.remove(group);
+      chipMeshes.length = 0;
+      colHL.forEach(h => h.material.opacity = 0);
+      ghostMesh.visible = false;
+      // Remove sparkles
+      for (let i = sparkles.children.length - 1; i >= 0; i--)
+        sparkles.remove(sparkles.children[i]);
+      document.getElementById('overlay').classList.remove('show');
+      updateHUD();
+    }
+
+    function updateHUD() {
+      const dot = document.getElementById('pdot');
+      const text = document.getElementById('stxt');
+      if (turn === P1) {
+        dot.style.background = '#d4213d';
+        dot.style.color = '#d4213d';
+        text.textContent = 'Your turn (Red)';
       } else {
-        group.position.y = ty;
-        onDone(col, row);
+        dot.style.background = '#f5c400';
+        dot.style.color = '#f5c400';
+        text.textContent = 'AI is thinking\u2026';
+      }
+    }
+
+    function showOver(title, msg) {
+      over = true;
+      document.getElementById('mtitle').textContent = title;
+      document.getElementById('mmsg').textContent = msg;
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    /* ================================================================
+       DROP ANIMATION (spring bounce)
+       ================================================================ */
+    const GRAVITY = -0.032;
+    const BOUNCE = 0.25;
+    const VEL_STOP = 0.005;
+
+    function dropChip(col, player, onDone) {
+      insert(board, col, player);
+      const row = colHeight(board, col) - 1;
+      const { group, mats } = makeChip(player);
+
+      let y = rowY(ROWS - 1) + CELL * 2.5;
+      let vy = 0, bounces = 0;
+      const ty = rowY(row);
+
+      group.position.set(colX(col), y, 0);
+      scene.add(group);
+      chipMeshes.push({ group, mats, col, row });
+
+      function tick() {
+        vy += GRAVITY;
+        y += vy;
+        if (y <= ty) {
+          if (Math.abs(vy) > VEL_STOP && bounces < 3) {
+            vy = -vy * BOUNCE; y = ty; bounces++;
+          } else {
+            group.position.y = ty;
+            onDone(col, row);
+            return;
+          }
+        }
+        group.position.y = y;
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    /* ================================================================
+       WIN SPARKLE PARTICLES
+       ================================================================ */
+    const sparkles = new THREE.Group();
+    scene.add(sparkles);
+
+    const sparkGeo = new THREE.SphereGeometry(0.04, 6, 4);
+    const sparkMatA = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const sparkMatB = new THREE.MeshBasicMaterial({ color: 0xffee88 });
+
+    function spawnSparkles(col, row) {
+      const wx = colX(col), wy = rowY(row), wz = 0.2;
+      for (let i = 0; i < 8; i++) {
+        const m = new THREE.Mesh(sparkGeo, Math.random() > 0.5 ? sparkMatA : sparkMatB);
+        m.position.set(wx, wy, wz);
+        m.userData.vx = (Math.random() - 0.5) * 0.12;
+        m.userData.vy = Math.random() * 0.12 + 0.04;
+        m.userData.vz = Math.random() * 0.06;
+        m.userData.life = 1.0;
+        sparkles.add(m);
+      }
+    }
+
+    /* ================================================================
+       WIN HIGHLIGHT
+       ================================================================ */
+    function markWinners(col, row) {
+      const p = board[col][row];
+      const axes = [[[1, 0], [-1, 0]], [[0, 1], [0, -1]], [[1, 1], [-1, -1]], [[1, -1], [-1, 1]]];
+      const keys = new Set();
+      for (const [da, db] of axes) {
+        const line = [{ col, row }];
+        for (const [dc, dr] of [da, db]) {
+          let c = col + dc, r = row + dr;
+          while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c][r] === p) {
+            line.push({ col: c, row: r }); c += dc; r += dr;
+          }
+        }
+        if (line.length >= 4) line.forEach(({ col: c, row: r }) => keys.add(`${c},${r}`));
+      }
+      for (const e of chipMeshes) {
+        if (keys.has(`${e.col},${e.row}`)) {
+          e.winner = true;
+          for (const m of e.mats) m.emissiveIntensity = 0.5;
+          spawnSparkles(e.col, e.row);
+        }
+      }
+    }
+
+    /* ================================================================
+       MOVE FLOW
+       ================================================================ */
+    function afterDrop(col, row, player) {
+      history.push({ col, player });
+
+      if (isWin(board, col, row)) {
+        markWinners(col, row);
+        if (player === P1) showOver('You Win!', 'Red wins \u2014 well played!');
+        else showOver('AI Wins!', 'Yellow wins this round.');
+        busy = false;
         return;
       }
-    }
-    group.position.y = y;
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
+      if (isFull(board)) {
+        showOver("It's a Draw!", 'No moves remaining.');
+        busy = false;
+        return;
+      }
 
-/* ================================================================
-   WIN SPARKLE PARTICLES
-   ================================================================ */
-const sparkles = new THREE.Group();
-scene.add(sparkles);
-
-const sparkGeo = new THREE.SphereGeometry(0.04, 6, 4);
-const sparkMatA = new THREE.MeshBasicMaterial({ color: 0xffffff });
-const sparkMatB = new THREE.MeshBasicMaterial({ color: 0xffee88 });
-
-function spawnSparkles(col, row) {
-  const wx = colX(col), wy = rowY(row), wz = BD / 2 + 0.2;
-  for (let i = 0; i < 8; i++) {
-    const m = new THREE.Mesh(sparkGeo, Math.random() > 0.5 ? sparkMatA : sparkMatB);
-    m.position.set(wx, wy, wz);
-    m.userData.vx = (Math.random() - 0.5) * 0.12;
-    m.userData.vy = Math.random() * 0.12 + 0.04;
-    m.userData.vz = Math.random() * 0.06;
-    m.userData.life = 1.0;
-    sparkles.add(m);
-  }
-}
-
-/* ================================================================
-   WIN HIGHLIGHT
-   ================================================================ */
-function markWinners(col, row) {
-  const p = board[col][row];
-  const axes = [[[1,0],[-1,0]], [[0,1],[0,-1]], [[1,1],[-1,-1]], [[1,-1],[-1,1]]];
-  const keys = new Set();
-  for (const [da, db] of axes) {
-    const line = [{ col, row }];
-    for (const [dc, dr] of [da, db]) {
-      let c = col + dc, r = row + dr;
-      while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c][r] === p) {
-        line.push({ col: c, row: r }); c += dc; r += dr;
+      if (player === P1) {
+        turn = P2;
+        updateHUD();
+        setTimeout(() => {
+          const aiCol = aiPickCol(board);
+          dropChip(aiCol, P2, (c, r) => afterDrop(c, r, P2));
+        }, 300);
+      } else {
+        turn = P1;
+        updateHUD();
+        busy = false;
       }
     }
-    if (line.length >= 4) line.forEach(({ col: c, row: r }) => keys.add(`${c},${r}`));
-  }
-  for (const e of chipMeshes) {
-    if (keys.has(`${e.col},${e.row}`)) {
-      e.winner = true;
-      for (const m of e.mats) m.emissiveIntensity = 0.5;
-      spawnSparkles(e.col, e.row);
+
+    function playerDrop(col) {
+      if (over || busy || turn !== P1) return;
+      if (col < 0 || col >= COLS) return;
+      if (colHeight(board, col) >= ROWS) return;
+
+      busy = true;
+      ghostMesh.visible = false;
+      colHL.forEach(h => h.material.opacity = 0);
+      dropChip(col, P1, (c, r) => afterDrop(c, r, P1));
     }
-  }
-}
 
-/* ================================================================
-   MOVE FLOW
-   ================================================================ */
-function afterDrop(col, row, player) {
-  history.push({ col, player });
-
-  if (isWin(board, col, row)) {
-    markWinners(col, row);
-    if (player === P1) showOver('You Win!',  'Red wins \u2014 well played!');
-    else               showOver('AI Wins!',  'Yellow wins this round.');
-    busy = false;
-    return;
-  }
-  if (isFull(board)) {
-    showOver("It's a Draw!", 'No moves remaining.');
-    busy = false;
-    return;
-  }
-
-  if (player === P1) {
-    turn = P2;
-    updateHUD();
-    setTimeout(() => {
-      const aiCol = aiPickCol(board);
-      dropChip(aiCol, P2, (c, r) => afterDrop(c, r, P2));
-    }, 300);
-  } else {
-    turn = P1;
-    updateHUD();
-    busy = false;
-  }
-}
-
-function playerDrop(col) {
-  if (over || busy || turn !== P1) return;
-  if (col < 0 || col >= COLS) return;
-  if (colHeight(board, col) >= ROWS) return;
-
-  busy = true;
-  ghostMesh.visible = false;
-  colHL.forEach(h => h.material.opacity = 0);
-  dropChip(col, P1, (c, r) => afterDrop(c, r, P1));
-}
-
-/* ================================================================
-   UNDO
-   ================================================================ */
-function doUndo() {
-  if (busy || history.length < 2) return;
-  for (let i = 0; i < 2; i++) {
-    const { col } = history.pop();
-    const row = colHeight(board, col) - 1;
-    remove(board, col);
-    const idx = chipMeshes.findIndex(e => e.col === col && e.row === row);
-    if (idx >= 0) { scene.remove(chipMeshes[idx].group); chipMeshes.splice(idx, 1); }
-  }
-  over = false;
-  turn = P1;
-  updateHUD();
-  document.getElementById('overlay').classList.remove('show');
-}
-
-/* ================================================================
-   RAYCASTING
-   ================================================================ */
-const raycaster = new THREE.Raycaster();
-const mouse2    = new THREE.Vector2();
-
-function colFromPointer(e) {
-  const rect = renderer.domElement.getBoundingClientRect();
-  mouse2.x = ((e.clientX - rect.left) / rect.width)  *  2 - 1;
-  mouse2.y = ((e.clientY - rect.top)  / rect.height) * -2 + 1;
-  raycaster.setFromCamera(mouse2, camera);
-  const hits = raycaster.intersectObject(hitPlane);
-  if (!hits.length) return -1;
-  const col = Math.round((hits[0].point.x + (COLS - 1) / 2 * CELL) / CELL);
-  return (col >= 0 && col < COLS) ? col : -1;
-}
-
-/* ================================================================
-   POINTER EVENTS
-   ================================================================ */
-renderer.domElement.addEventListener('mousemove', e => {
-  const col     = colFromPointer(e);
-  const canPlay = !over && !busy && turn === P1;
-  colHL.forEach((h, i) => h.material.opacity = (canPlay && i === col) ? 0.07 : 0);
-  if (canPlay && col >= 0 && colHeight(board, col) < ROWS) {
-    ghostMesh.visible = true;
-    ghostMesh.position.set(colX(col), rowY(ROWS - 1) + CELL * 1.35, BD / 2 - 0.06);
-  } else {
-    ghostMesh.visible = false;
-  }
-});
-
-renderer.domElement.addEventListener('click', e => playerDrop(colFromPointer(e)));
-
-renderer.domElement.addEventListener('mouseleave', () => {
-  ghostMesh.visible = false;
-  colHL.forEach(h => h.material.opacity = 0);
-});
-
-/* ================================================================
-   BUTTONS
-   ================================================================ */
-document.getElementById('btn-undo').addEventListener('click', doUndo);
-document.getElementById('btn-new').addEventListener('click', initGame);
-document.getElementById('btn-again').addEventListener('click', initGame);
-
-/* ================================================================
-   RESIZE
-   ================================================================ */
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-
-/* ================================================================
-   RENDER LOOP
-   ================================================================ */
-let clock = 0;
-(function loop() {
-  requestAnimationFrame(loop);
-  const dt = 0.016;
-  clock += dt;
-  controls.update();
-
-  // Pulse winning chips
-  for (const e of chipMeshes) {
-    if (e.winner) {
-      const intensity = 0.25 + 0.30 * Math.sin(clock * 4.5);
-      for (const m of e.mats) m.emissiveIntensity = intensity;
+    /* ================================================================
+       UNDO
+       ================================================================ */
+    function doUndo() {
+      if (busy || history.length < 2) return;
+      for (let i = 0; i < 2; i++) {
+        const { col } = history.pop();
+        const row = colHeight(board, col) - 1;
+        remove(board, col);
+        const idx = chipMeshes.findIndex(e => e.col === col && e.row === row);
+        if (idx >= 0) { scene.remove(chipMeshes[idx].group); chipMeshes.splice(idx, 1); }
+      }
+      over = false;
+      turn = P1;
+      updateHUD();
+      document.getElementById('overlay').classList.remove('show');
     }
-  }
 
-  // Animate sparkles
-  for (let i = sparkles.children.length - 1; i >= 0; i--) {
-    const s = sparkles.children[i];
-    s.userData.life -= dt * 0.8;
-    if (s.userData.life <= 0) { sparkles.remove(s); continue; }
-    s.position.x += s.userData.vx;
-    s.position.y += s.userData.vy;
-    s.position.z += s.userData.vz;
-    s.userData.vy -= 0.004;  // gravity
-    s.scale.setScalar(s.userData.life);
-    s.material.opacity = s.userData.life;
-  }
+    /* ================================================================
+       RAYCASTING
+       ================================================================ */
+    const raycaster = new THREE.Raycaster();
+    const mouse2 = new THREE.Vector2();
 
-  renderer.render(scene, camera);
-})();
+    function colFromPointer(e) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse2.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse2.y = ((e.clientY - rect.top) / rect.height) * -2 + 1;
+      raycaster.setFromCamera(mouse2, camera);
+      const hits = raycaster.intersectObject(hitPlane);
+      if (!hits.length) return -1;
+      const col = Math.round((hits[0].point.x + (COLS - 1) / 2 * CELL) / CELL);
+      return (col >= 0 && col < COLS) ? col : -1;
+    }
 
-initGame();
-</script>
+    /* ================================================================
+       POINTER EVENTS
+       ================================================================ */
+    renderer.domElement.addEventListener('mousemove', e => {
+      const col = colFromPointer(e);
+      const canPlay = !over && !busy && turn === P1;
+      colHL.forEach((h, i) => h.material.opacity = (canPlay && i === col) ? 0.07 : 0);
+      if (canPlay && col >= 0 && colHeight(board, col) < ROWS) {
+        ghostMesh.visible = true;
+        ghostMesh.position.set(colX(col), rowY(ROWS - 1) + CELL * 1.35, BD / 2 - 0.06);
+      } else {
+        ghostMesh.visible = false;
+      }
+    });
+
+    renderer.domElement.addEventListener('click', e => playerDrop(colFromPointer(e)));
+
+    renderer.domElement.addEventListener('mouseleave', () => {
+      ghostMesh.visible = false;
+      colHL.forEach(h => h.material.opacity = 0);
+    });
+
+    /* ================================================================
+       BUTTONS
+       ================================================================ */
+    document.getElementById('btn-undo').addEventListener('click', doUndo);
+    document.getElementById('btn-new').addEventListener('click', initGame);
+    document.getElementById('btn-again').addEventListener('click', initGame);
+
+    /* ================================================================
+       RESIZE
+       ================================================================ */
+    window.addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    /* ================================================================
+       RENDER LOOP
+       ================================================================ */
+    let clock = 0;
+    (function loop() {
+      requestAnimationFrame(loop);
+      const dt = 0.016;
+      clock += dt;
+      controls.update();
+
+      // Pulse winning chips
+      for (const e of chipMeshes) {
+        if (e.winner) {
+          const intensity = 0.25 + 0.30 * Math.sin(clock * 4.5);
+          for (const m of e.mats) m.emissiveIntensity = intensity;
+        }
+      }
+
+      // Animate sparkles
+      for (let i = sparkles.children.length - 1; i >= 0; i--) {
+        const s = sparkles.children[i];
+        s.userData.life -= dt * 0.8;
+        if (s.userData.life <= 0) { sparkles.remove(s); continue; }
+        s.position.x += s.userData.vx;
+        s.position.y += s.userData.vy;
+        s.position.z += s.userData.vz;
+        s.userData.vy -= 0.004;  // gravity
+        s.scale.setScalar(s.userData.life);
+        s.material.opacity = s.userData.life;
+      }
+
+      renderer.render(scene, camera);
+    })();
+
+    initGame();
+  </script>
 </body>
+
 </html>
