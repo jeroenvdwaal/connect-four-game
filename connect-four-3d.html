@@ -729,6 +729,7 @@
 
       const group = new THREE.Group();
       group.rotation.x = Math.PI / 2;
+      group.rotation.y = Math.PI * 2 * Math.random();
 
       // Body with material groups
       const body = new THREE.Mesh(chipGeo, [sideMat, capMat, backCapMat]);
