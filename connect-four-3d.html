@@ -5,374 +5,562 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Connect Four 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Bungee+Shade&family=Bangers&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background: #1a1a2e;
       overflow: hidden;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-    }
-
-    canvas {
-      display: block;
-    }
-
-    #hud {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 28px;
-      background: linear-gradient(180deg, rgba(10, 10, 30, 0.7) 0%, transparent 100%);
+      font-family: 'Bangers', 'Permanent Marker', cursive;
       color: #fff;
+    }
+
+    canvas#game-canvas { display: block; }
+
+    /* ── Graffiti title ── */
+    #game-title {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Bungee Shade', 'Permanent Marker', cursive;
+      font-size: 1.6em;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #ff6b6b);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 4s ease infinite;
       z-index: 10;
       pointer-events: none;
+      text-shadow: none;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+      white-space: nowrap;
     }
 
-    #hud>* {
-      pointer-events: auto;
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
+
+    /* ── Top HUD (compact) ── */
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 28px;
+      background: linear-gradient(180deg, rgba(10,10,30,0.7) 0%, transparent 100%);
+      z-index: 10;
+      pointer-events: none;
+      gap: 16px;
+    }
+    #hud > * { pointer-events: auto; }
 
     #status {
-      font-size: 1.15em;
-      font-weight: 600;
+      font-family: 'Bangers', cursive;
+      font-size: 1.1em;
+      letter-spacing: 1px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      gap: 10px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
-
     .dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      flex-shrink: 0;
+      width: 14px; height: 14px;
+      border-radius: 50%; flex-shrink: 0;
       box-shadow: 0 0 10px 2px currentColor;
     }
 
-    .btns {
-      display: flex;
-      gap: 10px;
+    .hud-btns {
+      position: fixed;
+      top: 12px; right: 16px;
+      display: flex; gap: 8px;
+      z-index: 11;
     }
 
+    .hud-btn {
+      padding: 6px 16px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Bangers', cursive;
+      font-size: 0.9em;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.08);
+      color: #eee;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s;
+    }
+    .hud-btn:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.35);
+    }
+
+    /* ── Player Panels ── */
+    .player-panel {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 180px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 10px;
+      border-radius: 20px;
+      background: rgba(15,18,35,0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      transition: box-shadow 0.4s;
+    }
+    .player-panel.active-turn {
+      box-shadow: 0 0 25px 4px var(--panel-glow);
+    }
+    .player-panel.p1 { left: 12px; --panel-glow: rgba(212,33,61,0.5); }
+    .player-panel.p2 { right: 12px; --panel-glow: rgba(245,196,0,0.5); }
+
+    .panel-chip-avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      position: relative;
+      margin-bottom: 4px;
+    }
+    .panel-chip-avatar canvas {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+    }
+
+    /* Thought bubble */
+    .think-bubble {
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.92);
+      color: #333;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.7em;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .think-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid rgba(255,255,255,0.92);
+    }
+    .think-bubble.show { opacity: 1; }
+
+    /* Small thought dots */
+    .think-dots {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 3px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .think-dots.show { opacity: 1; }
+    .think-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.7);
+      animation: dotPulse 1.2s ease infinite;
+    }
+    .think-dot:nth-child(2) { animation-delay: 0.2s; width: 5px; height: 5px; }
+    .think-dot:nth-child(3) { animation-delay: 0.4s; width: 4px; height: 4px; }
+
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .panel-name {
+      font-family: 'Permanent Marker', cursive;
+      font-size: 1.1em;
+      text-align: center;
+      min-height: 1.3em;
+      background: linear-gradient(135deg, var(--name-c1), var(--name-c2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .p1 .panel-name { --name-c1: #ff6b6b; --name-c2: #ff9a9a; }
+    .p2 .panel-name { --name-c1: #ffd93d; --name-c2: #ffe082; }
+
+    .panel-type-toggle {
+      display: flex;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.8em;
+    }
+    .toggle-opt {
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.05);
+      font-family: 'Bangers', cursive;
+      letter-spacing: 1px;
+      border: none;
+      color: #aaa;
+    }
+    .toggle-opt.active {
+      background: var(--toggle-active-bg);
+      color: #fff;
+    }
+    .p1 .toggle-opt.active { --toggle-active-bg: rgba(212,33,61,0.6); }
+    .p2 .toggle-opt.active { --toggle-active-bg: rgba(200,170,0,0.6); }
+
+    .panel-settings {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: max-height 0.3s, opacity 0.3s;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .name-input {
+      flex: 1;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 4px 8px;
+      color: #fff;
+      font-family: 'Permanent Marker', cursive;
+      font-size: 0.85em;
+      outline: none;
+      width: 100%;
+    }
+    .name-input:focus {
+      border-color: rgba(255,255,255,0.4);
+    }
+    .edit-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1em;
+      padding: 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      color: #fff;
+      line-height: 1;
+    }
+    .edit-btn:hover { opacity: 1; }
+
+    .ai-level-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75em;
+      color: #aaa;
+    }
+    .ai-level-row label {
+      font-family: 'Bangers', cursive;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .ai-level-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.15);
+      outline: none;
+    }
+    .ai-level-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+    .ai-level-val {
+      font-family: 'Bangers', cursive;
+      font-size: 1.1em;
+      min-width: 16px;
+      text-align: center;
+      color: #fff;
+    }
+
+    /* ── Game Over overlay ── */
+    #game-over-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+    }
+    #game-over-overlay.show {
+      display: block;
+      pointer-events: auto;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 51;
+      pointer-events: none;
+    }
+
+    #game-over-banner {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      z-index: 52;
+      text-align: center;
+      animation: none;
+      pointer-events: auto;
+    }
+    #game-over-banner.show {
+      animation: bannerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes bannerPop {
+      0% { transform: translateX(-50%) scale(0) rotate(-5deg); }
+      60% { transform: translateX(-50%) scale(1.1) rotate(2deg); }
+      100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+    }
+
+    .winner-title {
+      font-family: 'Bungee Shade', cursive;
+      font-size: 2.4em;
+      margin-bottom: 8px;
+      text-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+    }
+    .winner-title.p1-win {
+      background: linear-gradient(135deg, #ff4757, #ff6b81, #ff4757);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .winner-title.p2-win {
+      background: linear-gradient(135deg, #ffd93d, #fff176, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .winner-title.draw {
+      background: linear-gradient(135deg, #a29bfe, #74b9ff, #a29bfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .winner-sub {
+      font-family: 'Permanent Marker', cursive;
+      font-size: 1.2em;
+      color: #ccc;
+      margin-bottom: 16px;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    }
+
+    .restart-btn {
+      padding: 12px 36px;
+      font-family: 'Bangers', cursive;
+      font-size: 1.2em;
+      letter-spacing: 2px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 16px;
+      cursor: pointer;
+      background: rgba(30,35,60,0.9);
+      color: #fff;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .restart-btn:hover {
+      background: rgba(60,70,120,0.9);
+      border-color: rgba(255,255,255,0.5);
+      transform: scale(1.05);
+    }
+
+    /* ── Column buttons (mobile) ── */
     #column-buttons {
       position: fixed;
       bottom: 20px;
-      left: 0;
-      right: 0;
-      display: none; /* hidden by default, shown via media query */
+      left: 0; right: 0;
+      display: none;
       justify-content: center;
       gap: 6px;
       padding: 12px;
       z-index: 20;
-      pointer-events: none;
     }
     #column-buttons > button {
-      pointer-events: auto;
-      width: 44px;
-      height: 44px;
+      width: 42px; height: 42px;
       border-radius: 50%;
-      padding: 0;
-      font-weight: bold;
-      font-size: 1.1em;
-      background: rgba(255, 255, 255, 0.12);
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
       color: #fff;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: 'Bangers', cursive;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.15s;
+      backdrop-filter: blur(4px);
     }
     #column-buttons > button:hover,
     #column-buttons > button:active {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255,255,255,0.2);
       transform: scale(1.08);
     }
 
-    button {
-      padding: 8px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.88em;
-      background: rgba(255, 255, 255, 0.08);
-      color: #eee;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: all 0.2s;
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .player-panel { width: 140px; padding: 12px 8px; }
+      .panel-chip-avatar { width: 70px; height: 70px; }
+      .panel-name { font-size: 0.95em; }
+      .toggle-opt { padding: 4px 8px; font-size: 0.75em; }
+      #game-title { font-size: 1.2em; }
     }
 
-    button:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
-    #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 30;
-      justify-content: center;
-      align-items: center;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-    }
-
-    #overlay.show {
-      display: flex;
-    }
-
-    #settings-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 30;
-      justify-content: center;
-      align-items: center;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-    }
-
-    #settings-overlay.show {
-      display: flex;
-    }
-
-    #modal {
-      background: rgba(22, 27, 46, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-      padding: 56px 72px;
-      text-align: center;
-      color: #fff;
-      box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8);
-    }
-
-    #settings-modal {
-      background: rgba(22, 27, 46, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-      padding: 56px 72px;
-      text-align: left;
-      color: #fff;
-      box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8);
-      min-width: 400px;
-    }
-
-    #settings-modal h2 {
-      font-size: 2.2em;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    #settings-modal label {
-      display: block;
-      margin: 15px 0 5px;
-      font-weight: 600;
-    }
-
-    #settings-modal select, #settings-modal input[type="range"] {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      font-size: 1em;
-    }
-
-    #settings-modal .range-value {
-      display: inline-block;
-      margin-left: 10px;
-      font-weight: bold;
-    }
-
-    #settings-modal .buttons {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    #settings-modal .buttons button {
-      margin: 0 10px;
-      padding: 12px 24px;
-    }
-
-    #modal h2 {
-      font-size: 2.6em;
-      margin-bottom: 12px;
-      letter-spacing: -0.02em;
-    }
-
-    #modal p {
-      color: #aaa;
-      margin-bottom: 32px;
-      font-size: 1.1em;
-    }
-
-    #btn-again {
-      padding: 14px 40px;
-      font-size: 1em;
-      font-weight: 600;
-      background: linear-gradient(135deg, #4a7cf7, #3b5fe8);
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(59, 95, 232, 0.4);
-    }
-
-    #btn-again:hover {
-      background: linear-gradient(135deg, #6190ff, #4a70f5);
-    }
-
-    /* Show column buttons on touch devices and small screens */
-    @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-      #column-buttons {
-        display: flex;
+    @media (max-width: 700px) {
+      .player-panel {
+        position: fixed;
+        top: auto;
+        bottom: 70px;
+        transform: none;
+        width: 120px;
+        padding: 8px 6px;
+        border-radius: 14px;
       }
-
-      /* Adjust HUD for smaller screens */
-      #hud {
-        padding: 12px 16px;
-      }
-      #status {
-        font-size: 1em;
-      }
-      .btns button {
-        padding: 6px 14px;
-        font-size: 0.85em;
-      }
-
-      /* Make modal more compact */
-      #modal {
-        padding: 32px 40px;
-        margin: 16px;
-      }
-      #modal h2 {
-        font-size: 2em;
-      }
-      #modal p {
-        font-size: 1em;
-        margin-bottom: 24px;
-      }
-      #btn-again {
-        padding: 12px 32px;
-        font-size: 0.95em;
-      }
-      #settings-modal {
-        padding: 32px 40px;
-        margin: 16px;
-        min-width: unset;
-      }
-      #settings-modal h2 {
-        font-size: 2em;
-      }
-      #settings-modal label {
-        margin: 10px 0 5px;
-      }
-      #settings-modal select, #settings-modal input[type="range"] {
-        padding: 8px;
-      }
-      #settings-modal .buttons button {
-        padding: 10px 20px;
-      }
+      .player-panel.p1 { left: 4px; }
+      .player-panel.p2 { right: 4px; }
+      .panel-chip-avatar { width: 50px; height: 50px; }
+      .panel-name { font-size: 0.8em; }
+      .toggle-opt { padding: 3px 6px; font-size: 0.7em; }
+      #column-buttons { display: flex; }
+      #game-title { font-size: 1em; top: 6px; }
+      .hud-btns { top: 6px; right: 6px; }
+      .hud-btn { font-size: 0.75em; padding: 4px 10px; }
+      .winner-title { font-size: 1.6em; }
+      .winner-sub { font-size: 0.9em; }
+      #game-over-banner { bottom: 20px; }
     }
 
-    /* Extra small screens */
     @media (max-width: 480px) {
-      #column-buttons > button {
-        width: 38px;
-        height: 38px;
-        font-size: 1em;
-      }
-      #hud {
-        padding: 10px 12px;
-      }
-      #status {
-        font-size: 0.9em;
-      }
-      .btns button {
-        padding: 5px 10px;
-        font-size: 0.8em;
-      }
-      #settings-modal {
-        padding: 20px 24px;
-        min-width: unset;
-      }
-      #settings-modal h2 {
-        font-size: 1.8em;
-      }
-      #settings-modal label {
-        margin: 8px 0 4px;
-      }
-      #settings-modal select, #settings-modal input[type="range"] {
-        padding: 6px;
-      }
-      #settings-modal .buttons button {
-        padding: 8px 16px;
-        font-size: 0.9em;
-      }
+      .player-panel { width: 100px; padding: 6px 4px; gap: 6px; }
+      .panel-chip-avatar { width: 42px; height: 42px; }
+      .ai-level-row { font-size: 0.65em; }
+      #column-buttons > button { width: 36px; height: 36px; font-size: 0.95em; }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      #column-buttons { display: flex; }
     }
   </style>
 </head>
 
 <body>
 
+  <div id="game-title">Connect Four</div>
+
   <div id="hud">
     <div id="status" aria-live="polite" aria-atomic="true">
       <div class="dot" id="pdot" style="background:#d4213d; color:#d4213d"></div>
-      <span id="stxt">Your turn (Red)</span>
+      <span id="stxt">Red's turn</span>
     </div>
-    <div class="btns">
-      <button id="btn-undo" aria-label="Undo last move">Undo</button>
-      <button id="btn-new" aria-label="Start new game">New Game</button>
-      <button id="btn-settings" aria-label="Game settings">Settings</button>
+  </div>
+
+  <div class="hud-btns">
+    <button class="hud-btn" id="btn-undo" aria-label="Undo last move">Undo</button>
+    <button class="hud-btn" id="btn-new" aria-label="Start new game">New</button>
+  </div>
+
+  <!-- Player 1 panel (Red, left) -->
+  <div class="player-panel p1" id="panel-p1">
+    <div class="panel-chip-avatar" id="avatar-p1">
+      <canvas id="face-p1" width="180" height="180"></canvas>
+      <div class="think-bubble" id="think-p1">E=mc<sup>2</sup></div>
+      <div class="think-dots" id="dots-p1">
+        <div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div>
+      </div>
+    </div>
+    <div class="panel-name" id="name-p1">Player 1</div>
+    <div class="panel-type-toggle">
+      <button class="toggle-opt active" data-type="human" data-player="0">Human</button>
+      <button class="toggle-opt" data-type="ai" data-player="0">AI</button>
+    </div>
+    <div class="panel-settings" id="settings-p1">
+      <div class="name-row" id="name-row-p1">
+        <input class="name-input" id="name-input-p1" type="text" placeholder="Your name" maxlength="14" value="">
+        <button class="edit-btn" id="edit-p1" title="Edit name">&#9998;</button>
+      </div>
+      <div class="ai-level-row" id="ai-level-row-p1" style="display:none">
+        <label>Level</label>
+        <input type="range" class="ai-level-slider" id="ai-level-p1" min="1" max="10" value="6">
+        <span class="ai-level-val" id="ai-level-val-p1">6</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player 2 panel (Yellow, right) -->
+  <div class="player-panel p2" id="panel-p2">
+    <div class="panel-chip-avatar" id="avatar-p2">
+      <canvas id="face-p2" width="180" height="180"></canvas>
+      <div class="think-bubble" id="think-p2">7x6=42</div>
+      <div class="think-dots" id="dots-p2">
+        <div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div>
+      </div>
+    </div>
+    <div class="panel-name" id="name-p2">AI Luna</div>
+    <div class="panel-type-toggle">
+      <button class="toggle-opt" data-type="human" data-player="1">Human</button>
+      <button class="toggle-opt active" data-type="ai" data-player="1">AI</button>
+    </div>
+    <div class="panel-settings" id="settings-p2">
+      <div class="name-row" id="name-row-p2" style="display:none">
+        <input class="name-input" id="name-input-p2" type="text" placeholder="Your name" maxlength="14" value="">
+        <button class="edit-btn" id="edit-p2" title="Edit name">&#9998;</button>
+      </div>
+      <div class="ai-level-row" id="ai-level-row-p2">
+        <label>Level</label>
+        <input type="range" class="ai-level-slider" id="ai-level-p2" min="1" max="10" value="6">
+        <span class="ai-level-val" id="ai-level-val-p2">6</span>
+      </div>
     </div>
   </div>
 
   <div id="column-buttons" class="column-buttons">
-    <button data-col="0" aria-label="Column 1">1</button>
-    <button data-col="1" aria-label="Column 2">2</button>
-    <button data-col="2" aria-label="Column 3">3</button>
-    <button data-col="3" aria-label="Column 4">4</button>
-    <button data-col="4" aria-label="Column 5">5</button>
-    <button data-col="5" aria-label="Column 6">6</button>
-    <button data-col="6" aria-label="Column 7">7</button>
+    <button data-col="0">1</button>
+    <button data-col="1">2</button>
+    <button data-col="2">3</button>
+    <button data-col="3">4</button>
+    <button data-col="4">5</button>
+    <button data-col="5">6</button>
+    <button data-col="6">7</button>
   </div>
 
-  <div id="overlay">
-    <div id="modal">
-      <h2 id="mtitle">Game Over</h2>
-      <p id="mmsg"></p>
-      <button id="btn-again" aria-label="Play again">Play Again</button>
-    </div>
-  </div>
-
-  <div id="settings-overlay">
-    <div id="settings-modal">
-      <h2>Game Settings</h2>
-      <label for="game-mode">Game Mode</label>
-      <select id="game-mode">
-        <option value="human-vs-human">Human vs Human</option>
-        <option value="human-vs-ai" selected>Human vs AI</option>
-        <option value="ai-vs-ai">AI vs AI</option>
-      </select>
-      <label for="ai-level">AI Difficulty Level: <span id="ai-level-value">6</span></label>
-      <input type="range" id="ai-level" min="1" max="10" value="6">
-      <div class="buttons">
-        <button id="btn-settings-apply">Apply & Start New Game</button>
-        <button id="btn-settings-cancel">Cancel</button>
-      </div>
+  <!-- Game over -->
+  <canvas id="confetti-canvas"></canvas>
+  <div id="game-over-overlay">
+    <div id="game-over-banner">
+      <div class="winner-title" id="winner-title">Red Wins!</div>
+      <div class="winner-sub" id="winner-sub">Great game!</div>
+      <button class="restart-btn" id="btn-restart">Play Again</button>
     </div>
   </div>
 
@@ -395,22 +583,66 @@
        ================================================================ */
     const ROWS = 6, COLS = 7;
     const EMPTY = 2, P1 = 0, P2 = 1;
-    let aiDepth = 6;
-    let gameMode = 'human-vs-ai'; // 'human-vs-human', 'human-vs-ai', 'ai-vs-ai'
 
-    function isHuman(player) {
-      if (gameMode === 'human-vs-human') return true;
-      if (gameMode === 'human-vs-ai') return player === P1;
-      if (gameMode === 'ai-vs-ai') return false;
-      return false;
+    /* ================================================================
+       AI PERSONAS
+       ================================================================ */
+    const AI_PERSONAS = [
+      { name: 'Luna', gender: 'girl' },
+      { name: 'Max', gender: 'boy' },
+      { name: 'Zoe', gender: 'girl' },
+      { name: 'Rex', gender: 'boy' },
+      { name: 'Ivy', gender: 'girl' },
+      { name: 'Finn', gender: 'boy' },
+      { name: 'Mia', gender: 'girl' },
+      { name: 'Leo', gender: 'boy' },
+      { name: 'Nova', gender: 'girl' },
+      { name: 'Axel', gender: 'boy' },
+    ];
+
+    const THINK_FORMULAS = [
+      'E=mc\u00B2', '7x6=42', '\u03C0r\u00B2', '\u2211n\u00B2',
+      'a\u00B2+b\u00B2', '\u221A144', '4!=24', 'x\u2192\u221E',
+      '\u0394v/\u0394t', '\u222Bf(x)', 'n!/(n-k)!', '2\u2077=128',
+    ];
+
+    /* ================================================================
+       PLAYER STATE
+       ================================================================ */
+    const players = [
+      {
+        type: 'human',
+        name: '',
+        aiLevel: 6,
+        aiPersona: null,
+        expression: 'neutral',
+      },
+      {
+        type: 'ai',
+        name: '',
+        aiLevel: 6,
+        aiPersona: AI_PERSONAS[0],
+        expression: 'neutral',
+      },
+    ];
+
+    // Assign random AI persona to P2
+    function randomPersona(exclude) {
+      const pool = AI_PERSONAS.filter(p => p !== exclude);
+      return pool[Math.floor(Math.random() * pool.length)];
     }
+    players[1].aiPersona = randomPersona(null);
+    players[1].name = 'AI ' + players[1].aiPersona.name;
 
-    function isAI(player) {
-      return !isHuman(player);
+    function isHuman(p) { return players[p].type === 'human'; }
+    function isAI(p) { return players[p].type === 'ai'; }
+    function playerName(p) {
+      if (players[p].name) return players[p].name;
+      return p === P1 ? 'Red' : 'Yellow';
     }
 
     /* ================================================================
-       BOARD LOGIC (direct port from connect-four-game.c)
+       BOARD LOGIC
        ================================================================ */
     const newBoard = () => Array.from({ length: COLS }, () => Array(ROWS).fill(EMPTY));
 
@@ -430,7 +662,7 @@
 
     function isWin(b, col, row) {
       const p = b[col][row];
-      const axes = [[[1, 0], [-1, 0]], [[0, 1], [0, -1]], [[1, 1], [-1, -1]], [[1, -1], [-1, 1]]];
+      const axes = [[[1,0],[-1,0]],[[0,1],[0,-1]],[[1,1],[-1,-1]],[[1,-1],[-1,1]]];
       for (const [da, db] of axes) {
         let n = 1;
         for (const [dc, dr] of [da, db]) {
@@ -445,7 +677,7 @@
     const isFull = b => b.every(col => col.every(v => v !== EMPTY));
 
     /* ================================================================
-       AI - minimax with alpha-beta (ported from opponent.c)
+       AI - minimax with alpha-beta
        ================================================================ */
     const SCORE = [0, 1, 3, 8, 200];
 
@@ -459,10 +691,10 @@
       };
       for (let r = 0; r < ROWS; r++)
         for (let c = 0; c < COLS; c++) {
-          if (c + 3 < COLS) s += win4([at(c, r), at(c + 1, r), at(c + 2, r), at(c + 3, r)]);
-          if (r + 3 < ROWS) s += win4([at(c, r), at(c, r + 1), at(c, r + 2), at(c, r + 3)]);
-          if (c + 3 < COLS && r + 3 < ROWS) s += win4([at(c, r), at(c + 1, r + 1), at(c + 2, r + 2), at(c + 3, r + 3)]);
-          if (c + 3 < COLS && r - 3 >= 0) s += win4([at(c, r), at(c + 1, r - 1), at(c + 2, r - 2), at(c + 3, r - 3)]);
+          if (c + 3 < COLS) s += win4([at(c,r), at(c+1,r), at(c+2,r), at(c+3,r)]);
+          if (r + 3 < ROWS) s += win4([at(c,r), at(c,r+1), at(c,r+2), at(c,r+3)]);
+          if (c + 3 < COLS && r + 3 < ROWS) s += win4([at(c,r), at(c+1,r+1), at(c+2,r+2), at(c+3,r+3)]);
+          if (c + 3 < COLS && r - 3 >= 0) s += win4([at(c,r), at(c+1,r-1), at(c+2,r-2), at(c+3,r-3)]);
         }
       return s;
     }
@@ -484,16 +716,20 @@
       return best;
     }
 
-    function aiPickCol(b) {
+    function aiPickCol(b, player) {
       const bc = b.map(c => [...c]);
-      let best = Infinity, col = Math.floor(COLS / 2);
+      const isMaximizer = player === P1;
+      let best = isMaximizer ? -Infinity : Infinity;
+      let col = Math.floor(COLS / 2);
+      const depth = players[player].aiLevel;
       for (let c = 0; c < COLS; c++) {
         if (colHeight(bc, c) >= ROWS) continue;
-        const row = insert(bc, c, P2);
+        const row = insert(bc, c, player);
         const val = isWin(bc, c, row) ? evalBoard(bc)
-          : minimax(bc, aiDepth - 1, -Infinity, Infinity, P1);
+          : minimax(bc, depth - 1, -Infinity, Infinity, player === P1 ? P2 : P1);
         remove(bc, c);
-        if (val < best) { best = val; col = c; }
+        if (isMaximizer) { if (val > best) { best = val; col = c; } }
+        else { if (val < best) { best = val; col = c; } }
       }
       return col;
     }
@@ -513,7 +749,6 @@
     const P1_COL = 0xd4213d;
     const P2_COL = 0xf5c400;
 
-    // --- Renderer ---
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
@@ -522,26 +757,22 @@
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.id = 'game-canvas';
     document.body.appendChild(renderer.domElement);
-    // Accessibility: provide a label for the canvas
-    renderer.domElement.setAttribute('aria-label', '3D Connect Four game board with 6 rows and 7 columns');
+    renderer.domElement.setAttribute('aria-label', '3D Connect Four game board');
     renderer.domElement.setAttribute('role', 'img');
 
-    // --- Scene ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a2e);
     scene.fog = new THREE.FogExp2(0x1a1a2e, 0.022);
 
-    // --- IBL ---
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     pmrem.dispose();
 
-    // --- Camera ---
     const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 120);
     camera.position.set(0, 4.5, 15);
 
-    // --- Orbit controls ---
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0.3, 0);
     controls.enableDamping = true;
@@ -551,21 +782,15 @@
     controls.minPolarAngle = Math.PI * 0.15;
     controls.maxPolarAngle = Math.PI * 0.62;
 
-    // Improve touch interaction
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-      controls.dampingFactor = 0.1; // smoother deceleration for touch
-      // Reduce rotation speed for more precise control
+      controls.dampingFactor = 0.1;
       controls.rotateSpeed = 0.8;
       controls.zoomSpeed = 0.8;
     }
 
-    /* ================================================================
-       LIGHTING - three-point studio setup
-       ================================================================ */
-    // Warm ambient fill
+    /* ── Lighting ── */
     scene.add(new THREE.AmbientLight(0xc4b8a0, 0.35));
 
-    // Key light (warm, upper-right)
     const keyLight = new THREE.DirectionalLight(0xfff0dd, 2.0);
     keyLight.position.set(8, 14, 10);
     keyLight.castShadow = true;
@@ -580,42 +805,30 @@
     keyLight.shadow.normalBias = 0.02;
     scene.add(keyLight);
 
-    // Fill light (cool, left)
     const fillLight = new THREE.DirectionalLight(0x8ab4f8, 0.6);
     fillLight.position.set(-7, 5, 8);
     scene.add(fillLight);
 
-    // Rim/back light
     const rimLight = new THREE.DirectionalLight(0xeeddff, 0.5);
     rimLight.position.set(0, 3, -10);
     scene.add(rimLight);
 
-    // Subtle warm point light below board for under-glow
     const underGlow = new THREE.PointLight(0xff9944, 0.3, 15);
     underGlow.position.set(0, -4, 2);
     scene.add(underGlow);
 
-    /* ================================================================
-       TABLE SURFACE
-       ================================================================ */
+    /* ── Table ── */
     const tableGeo = new THREE.CylinderGeometry(18, 18, 0.3, 64);
-    const tableMat = new THREE.MeshStandardMaterial({
-      color: 0x2a1f14,
-      roughness: 0.65,
-      metalness: 0.05,
-    });
+    const tableMat = new THREE.MeshStandardMaterial({ color: 0x2a1f14, roughness: 0.65, metalness: 0.05 });
     const table = new THREE.Mesh(tableGeo, tableMat);
     table.position.y = -BH / 2 - 2.3;
     table.receiveShadow = true;
     scene.add(table);
 
-    /* ================================================================
-       BOARD - glossy blue plastic with rounded profile
-       ================================================================ */
+    /* ── Board ── */
     const boardGroup = new THREE.Group();
     scene.add(boardGroup);
 
-    // Board body with slight bevel
     const boardShape = new THREE.Shape();
     const bw2 = BW / 2, bh2 = BH / 2, bevel = 0.18;
     boardShape.moveTo(-bw2 + bevel, -bh2);
@@ -628,47 +841,29 @@
     boardShape.lineTo(-bw2, -bh2 + bevel);
     boardShape.quadraticCurveTo(-bw2, -bh2, -bw2 + bevel, -bh2);
 
-    // Punch holes in the board shape
     for (let c = 0; c < COLS; c++) {
       for (let r = 0; r < ROWS; r++) {
         const holePath = new THREE.Path();
-        const holeR = CHIP_R + 0.02;
-        holePath.absarc(colX(c), rowY(r), holeR, 0, Math.PI * 2, false);
+        holePath.absarc(colX(c), rowY(r), CHIP_R + 0.02, 0, Math.PI * 2, false);
         boardShape.holes.push(holePath);
       }
     }
 
-    const extrudeSettings = {
-      depth: BD,
-      bevelEnabled: true,
-      bevelThickness: 0.06,
-      bevelSize: 0.06,
-      bevelSegments: 3,
-    };
-    const boardGeo = new THREE.ExtrudeGeometry(boardShape, extrudeSettings);
+    const boardGeo = new THREE.ExtrudeGeometry(boardShape, {
+      depth: BD, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 3,
+    });
     const boardMat = new THREE.MeshPhysicalMaterial({
-      color: 0x1565c0,
-      roughness: 0.22,
-      metalness: 0.02,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.15,
-      envMapIntensity: 1.0,
+      color: 0x1565c0, roughness: 0.22, metalness: 0.02,
+      clearcoat: 0.9, clearcoatRoughness: 0.15, envMapIntensity: 1.0,
     });
     const boardMesh = new THREE.Mesh(boardGeo, boardMat);
-    boardMesh.rotation.x = 0;
     boardMesh.position.z = -BD / 2;
     boardMesh.castShadow = true;
     boardMesh.receiveShadow = true;
     boardGroup.add(boardMesh);
 
-    // Inner hole walls - dark plastic rings for depth
     const holeWallGeo = new THREE.CylinderGeometry(CHIP_R + 0.02, CHIP_R + 0.02, BD + 0.14, 32, 1, true);
-    const holeWallMat = new THREE.MeshStandardMaterial({
-      color: 0x0a0e18,
-      roughness: 0.85,
-      metalness: 0.0,
-      side: THREE.BackSide,
-    });
+    const holeWallMat = new THREE.MeshStandardMaterial({ color: 0x0a0e18, roughness: 0.85, side: THREE.BackSide });
     for (let c = 0; c < COLS; c++) {
       for (let r = 0; r < ROWS; r++) {
         const hw = new THREE.Mesh(holeWallGeo, holeWallMat);
@@ -678,76 +873,35 @@
       }
     }
 
-    // Board frame - subtle rim around the edge
     const frameMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0d47a1,
-      roughness: 0.3,
-      metalness: 0.1,
-      clearcoat: 0.7,
-      clearcoatRoughness: 0.2,
+      color: 0x0d47a1, roughness: 0.3, metalness: 0.1, clearcoat: 0.7, clearcoatRoughness: 0.2,
     });
-
-    // Top trim
     const trimGeo = new THREE.BoxGeometry(BW + 0.14, 0.22, BD + 0.14);
     const topTrim = new THREE.Mesh(trimGeo, frameMat);
-    topTrim.position.y = bh2 + 0.11;
-    topTrim.castShadow = true;
-    boardGroup.add(topTrim);
-
-    // Bottom trim
+    topTrim.position.y = bh2 + 0.11; topTrim.castShadow = true; boardGroup.add(topTrim);
     const botTrim = new THREE.Mesh(trimGeo, frameMat);
-    botTrim.position.y = -bh2 - 0.11;
-    botTrim.castShadow = true;
-    boardGroup.add(botTrim);
+    botTrim.position.y = -bh2 - 0.11; botTrim.castShadow = true; boardGroup.add(botTrim);
 
-    // Side trims
     const sideTrimGeo = new THREE.BoxGeometry(0.22, BH + 0.44, BD + 0.14);
     const leftTrim = new THREE.Mesh(sideTrimGeo, frameMat);
-    leftTrim.position.x = -bw2 - 0.11;
-    leftTrim.castShadow = true;
-    boardGroup.add(leftTrim);
-
+    leftTrim.position.x = -bw2 - 0.11; leftTrim.castShadow = true; boardGroup.add(leftTrim);
     const rightTrim = new THREE.Mesh(sideTrimGeo, frameMat);
-    rightTrim.position.x = bw2 + 0.11;
-    rightTrim.castShadow = true;
-    boardGroup.add(rightTrim);
+    rightTrim.position.x = bw2 + 0.11; rightTrim.castShadow = true; boardGroup.add(rightTrim);
 
-    // Board stand - two sturdy legs + cross bar
     const legMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0d47a1, roughness: 0.35, metalness: 0.08,
-      clearcoat: 0.5, clearcoatRoughness: 0.25,
+      color: 0x0d47a1, roughness: 0.35, metalness: 0.08, clearcoat: 0.5, clearcoatRoughness: 0.25,
     });
     for (const side of [-1, 1]) {
       const legX = side * (BW / 2 - 0.5);
-      const leg = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 2.0, 0.6),
-        legMat
-      );
-      leg.position.set(legX, -BH / 2 - 1.0, 0);
-      leg.castShadow = true;
-      boardGroup.add(leg);
-
-      // Foot pad
-      const foot = new THREE.Mesh(
-        new THREE.BoxGeometry(0.7, 0.14, 0.8),
-        legMat
-      );
-      foot.position.set(legX, -BH / 2 - 1.97, 0);
-      foot.castShadow = true;
-      boardGroup.add(foot);
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.0, 0.6), legMat);
+      leg.position.set(legX, -BH / 2 - 1.0, 0); leg.castShadow = true; boardGroup.add(leg);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.14, 0.8), legMat);
+      foot.position.set(legX, -BH / 2 - 1.97, 0); foot.castShadow = true; boardGroup.add(foot);
     }
-    // Cross bar
-    const crossBar = new THREE.Mesh(
-      new THREE.BoxGeometry(BW - 0.8, 0.3, 0.5),
-      legMat
-    );
-    crossBar.position.set(0, -BH / 2 - 1.7, 0);
-    crossBar.castShadow = true;
-    boardGroup.add(crossBar);
+    const crossBar = new THREE.Mesh(new THREE.BoxGeometry(BW - 0.8, 0.3, 0.5), legMat);
+    crossBar.position.set(0, -BH / 2 - 1.7, 0); crossBar.castShadow = true; boardGroup.add(crossBar);
 
-    /* ================================================================
-       RAYCASTING
-       ================================================================ */
+    /* ── Raycasting ── */
     const hitPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(BW + 2, BH + 5),
       new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
@@ -755,10 +909,7 @@
     hitPlane.position.z = BD / 2 + 0.1;
     scene.add(hitPlane);
 
-    /* ================================================================
-       CHIP TEXTURES
-       ================================================================ */
-
+    /* ── Chip Textures ── */
     function capsulePath(ctx, hw, hl) {
       ctx.beginPath();
       ctx.moveTo(-hw, -hl + hw);
@@ -776,46 +927,21 @@
       canvas.width = canvas.height = S;
       const ctx = canvas.getContext('2d');
       const rv = (hexColor >> 16) & 255, gv = (hexColor >> 8) & 255, bv = hexColor & 255;
-
-      // Clip to disc
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
-      ctx.clip();
-
-      // Base
-      ctx.fillStyle = `rgb(${rv},${gv},${bv})`;
-      ctx.fillRect(0, 0, S, S);
-
-      // Subtle plastic sheen from upper-left
+      ctx.beginPath(); ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = `rgb(${rv},${gv},${bv})`; ctx.fillRect(0, 0, S, S);
       const hi = ctx.createRadialGradient(cx - 50, cy - 60, 20, cx, cy, S / 2);
       hi.addColorStop(0, 'rgba(255,255,255,0.18)');
       hi.addColorStop(0.4, 'rgba(255,255,255,0.03)');
       hi.addColorStop(1, 'rgba(0,0,0,0.15)');
-      ctx.fillStyle = hi;
-      ctx.fillRect(0, 0, S, S);
-
-      // Raised outer rim highlight
-      ctx.beginPath();
-      ctx.arc(cx, cy, S * 0.42, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,255,255,0.20)';
-      ctx.lineWidth = 8;
-      ctx.stroke();
-
-      // Engraved groove
-      ctx.beginPath();
-      ctx.arc(cx, cy, S * 0.385, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-      ctx.lineWidth = 7;
-      ctx.stroke();
-
-      // Inner recessed well
-      ctx.beginPath();
-      ctx.arc(cx, cy, S * 0.380, 0, Math.PI * 2);
+      ctx.fillStyle = hi; ctx.fillRect(0, 0, S, S);
+      ctx.beginPath(); ctx.arc(cx, cy, S * 0.42, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.20)'; ctx.lineWidth = 8; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, S * 0.385, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 7; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, S * 0.380, 0, Math.PI * 2);
       const dR = Math.max(0, rv - 20), dG = Math.max(0, gv - 16), dB = Math.max(0, bv - 12);
-      ctx.fillStyle = `rgb(${dR},${dG},${dB})`;
-      ctx.fill();
-
+      ctx.fillStyle = `rgb(${dR},${dG},${dB})`; ctx.fill();
       ctx.restore();
       return { canvas, ctx, S, cx, cy, rv, gv, bv };
     }
@@ -823,28 +949,14 @@
     function makeChipFrontTexture(hexColor) {
       const { canvas, ctx, S, cx, cy, rv, gv, bv } = chipBase(hexColor);
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
-      ctx.clip();
-
+      ctx.beginPath(); ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2); ctx.clip();
       const fontSize = Math.round(S * 0.44);
       ctx.font = `bold ${fontSize}px "Arial Black", Impact, Arial, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillText('4', cx + 5, cy + 6);
-
-      // Highlight
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
-      ctx.fillText('4', cx - 2, cy - 3);
-
-      // Main
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillText('4', cx + 5, cy + 6);
+      ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillText('4', cx - 2, cy - 3);
       const lR = Math.min(255, rv + 22), lG = Math.min(255, gv + 18), lB = Math.min(255, bv + 14);
-      ctx.fillStyle = `rgb(${lR},${lG},${lB})`;
-      ctx.fillText('4', cx, cy + 1);
-
+      ctx.fillStyle = `rgb(${lR},${lG},${lB})`; ctx.fillText('4', cx, cy + 1);
       ctx.restore();
       return new THREE.CanvasTexture(canvas);
     }
@@ -852,33 +964,25 @@
     function makeChipBackTexture(hexColor) {
       const { canvas, ctx, S, cx, cy, rv, gv, bv } = chipBase(hexColor);
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2);
-      ctx.clip();
-
+      ctx.beginPath(); ctx.arc(cx, cy, S / 2 - 2, 0, Math.PI * 2); ctx.clip();
       const lR = Math.min(255, rv + 22), lG = Math.min(255, gv + 18), lB = Math.min(255, bv + 14);
       const lighter = `rgb(${lR},${lG},${lB})`;
       const hw = S * 0.10, hl = S * 0.30;
-
-      // Shadow pass
       ctx.fillStyle = 'rgba(0,0,0,0.30)';
       for (const rot of [0, Math.PI / 2]) {
         ctx.save(); ctx.translate(cx + 4, cy + 4); ctx.rotate(rot);
         capsulePath(ctx, hw, hl); ctx.fill(); ctx.restore();
       }
-      // Main pass
       ctx.fillStyle = lighter;
       for (const rot of [0, Math.PI / 2]) {
         ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
         capsulePath(ctx, hw, hl); ctx.fill(); ctx.restore();
       }
-      // Boss
       const br = S * 0.075;
       ctx.beginPath(); ctx.arc(cx + 3, cy + 3, br, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.fill();
       ctx.beginPath(); ctx.arc(cx, cy, br, 0, Math.PI * 2);
       ctx.fillStyle = lighter; ctx.fill();
-
       ctx.restore();
       return new THREE.CanvasTexture(canvas);
     }
@@ -886,45 +990,23 @@
     const chipFrontTex = { [P1]: makeChipFrontTexture(P1_COL), [P2]: makeChipFrontTexture(P2_COL) };
     const chipBackTex = { [P1]: makeChipBackTexture(P1_COL), [P2]: makeChipBackTexture(P2_COL) };
 
-    /* ================================================================
-       CHIP GEOMETRY - scalloped edge baked into LatheGeometry
-       ================================================================ */
-
-    // Create a chip profile for LatheGeometry with scalloped outer edge
-    function makeChipGeo() {
-      const r = CHIP_R;
-      const halfT = CHIP_T / 2;
-      const segments = 64;
-
-      // Build the chip as a cylinder with groups for materials:
-      // group 0 = barrel (sides), group 1 = top cap, group 2 = bottom cap
-      const geo = new THREE.CylinderGeometry(r, r, CHIP_T, segments);
-      return geo;
-    }
-
-    // Scallop bump ring geometry (shared)
+    /* ── Chip geometry ── */
     const SCALLOP_N = 28;
     const sclopGeo = new THREE.SphereGeometry(0.048, 10, 6);
+    const chipGeo = new THREE.CylinderGeometry(CHIP_R, CHIP_R, CHIP_T, 64);
 
-    const chipGeo = makeChipGeo();
-
-    /* ================================================================
-       GHOST CHIP
-       ================================================================ */
+    /* ── Ghost chip ── */
     const ghostMat = new THREE.MeshPhysicalMaterial({
       color: P1_COL, transparent: true, opacity: 0.30,
       emissive: P1_COL, emissiveIntensity: 0.15,
-      metalness: 0.0, roughness: 0.45,
-      clearcoat: 0.3, clearcoatRoughness: 0.3,
+      metalness: 0.0, roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.3,
     });
     const ghostMesh = new THREE.Mesh(chipGeo, ghostMat);
     ghostMesh.rotation.x = Math.PI / 2;
     ghostMesh.visible = false;
     scene.add(ghostMesh);
 
-    /* ================================================================
-       COLUMN HIGHLIGHTS
-       ================================================================ */
+    /* ── Column highlights ── */
     const colHL = Array.from({ length: COLS }, (_, c) => {
       const m = new THREE.Mesh(
         new THREE.BoxGeometry(CELL * 0.88, BH - 0.2, 0.02),
@@ -938,68 +1020,331 @@
       return m;
     });
 
-    /* ================================================================
-       CHIP MESH FACTORY
-       ================================================================ */
+    /* ── Chip mesh factory ── */
     const chipMeshes = [];
 
     function makeChip(player) {
       const color = player === P1 ? P1_COL : P2_COL;
-
       const sideMat = new THREE.MeshPhysicalMaterial({
-        color,
-        metalness: 0.0, roughness: 0.38,
+        color, metalness: 0.0, roughness: 0.38,
         clearcoat: 0.6, clearcoatRoughness: 0.2,
-        emissive: color, emissiveIntensity: 0.03,
-        envMapIntensity: 0.9,
+        emissive: color, emissiveIntensity: 0.03, envMapIntensity: 0.9,
       });
-
       const capMat = new THREE.MeshPhysicalMaterial({
         color: 0xffffff, map: chipFrontTex[player],
         emissive: color, emissiveIntensity: 0.03,
-        metalness: 0.0, roughness: 0.38,
-        clearcoat: 0.5, clearcoatRoughness: 0.22,
-        envMapIntensity: 0.6,
+        metalness: 0.0, roughness: 0.38, clearcoat: 0.5, clearcoatRoughness: 0.22, envMapIntensity: 0.6,
       });
-
       const backCapMat = new THREE.MeshPhysicalMaterial({
         color: 0xffffff, map: chipBackTex[player],
         emissive: color, emissiveIntensity: 0.03,
-        metalness: 0.0, roughness: 0.38,
-        clearcoat: 0.5, clearcoatRoughness: 0.22,
-        envMapIntensity: 0.6,
+        metalness: 0.0, roughness: 0.38, clearcoat: 0.5, clearcoatRoughness: 0.22, envMapIntensity: 0.6,
       });
-
       const group = new THREE.Group();
       group.rotation.x = Math.PI / 2;
       group.rotation.y = Math.PI * 2 * Math.random();
-
-      // Body with material groups
       const body = new THREE.Mesh(chipGeo, [sideMat, capMat, backCapMat]);
-      body.castShadow = true;
-      body.receiveShadow = true;
+      body.castShadow = true; body.receiveShadow = true;
       group.add(body);
-
-      // Scalloped bumps around edge
       for (let i = 0; i < SCALLOP_N; i++) {
         const angle = (i / SCALLOP_N) * Math.PI * 2;
         const bump = new THREE.Mesh(sclopGeo, sideMat);
-        bump.position.set(
-          Math.cos(angle) * (CHIP_R + 0.005),
-          0.06,
-          -Math.sin(angle) * (CHIP_R + 0.005)
-        );
-        bump.castShadow = true;
-        group.add(bump);
+        bump.position.set(Math.cos(angle) * (CHIP_R + 0.005), 0.06, -Math.sin(angle) * (CHIP_R + 0.005));
+        bump.castShadow = true; group.add(bump);
+      }
+      return { group, mats: [sideMat, capMat, backCapMat] };
+    }
+
+    /* ================================================================
+       AVATAR FACE DRAWING
+       ================================================================ */
+    function drawFace(canvasId, player, expression, isAiPlayer) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const S = canvas.width;
+      const cx = S / 2, cy = S / 2, R = S / 2 - 4;
+      ctx.clearRect(0, 0, S, S);
+
+      const baseColor = player === P1 ? '#d4213d' : '#f5c400';
+      const darkColor = player === P1 ? '#a01a30' : '#c09e00';
+      const lightColor = player === P1 ? '#ff6b81' : '#ffe082';
+
+      // Chip body (translucent if AI)
+      const alpha = isAiPlayer ? 0.8 : 0.5;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = baseColor;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+
+      // Sheen
+      const grad = ctx.createRadialGradient(cx - 15, cy - 20, 10, cx, cy, R);
+      grad.addColorStop(0, 'rgba(255,255,255,0.3)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.15)');
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = 1;
+      ctx.fill();
+
+      // Rim
+      ctx.beginPath();
+      ctx.arc(cx, cy, R - 2, 0, Math.PI * 2);
+      ctx.strokeStyle = darkColor;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.5;
+      ctx.stroke();
+      ctx.restore();
+
+      if (!isAiPlayer) {
+        // Human: just draw a simple person silhouette
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = '#fff';
+        // Head
+        ctx.beginPath();
+        ctx.arc(cx, cy - 12, 18, 0, Math.PI * 2);
+        ctx.fill();
+        // Body
+        ctx.beginPath();
+        ctx.arc(cx, cy + 28, 26, Math.PI * 1.1, Math.PI * 1.9, false);
+        ctx.fill();
+        ctx.restore();
+        return;
       }
 
-      return { group, mats: [sideMat, capMat, backCapMat] };
+      // AI face
+      ctx.save();
+      ctx.globalAlpha = 1;
+
+      const persona = players[player].aiPersona;
+      const isGirl = persona && persona.gender === 'girl';
+
+      // Hair for girl personas (decorative)
+      if (isGirl) {
+        ctx.fillStyle = darkColor;
+        // Side bangs
+        ctx.beginPath();
+        ctx.ellipse(cx - R * 0.6, cy - R * 0.2, 14, 28, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + R * 0.6, cy - R * 0.2, 14, 28, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        // Top puff
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - R * 0.7, 30, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Eyes
+      const eyeY = cy - 8;
+      const eyeSpread = 20;
+
+      if (expression === 'thinking') {
+        // Concentrated eyes: slightly squinting
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        // Left eye
+        ctx.beginPath();
+        ctx.moveTo(cx - eyeSpread - 8, eyeY - 2);
+        ctx.quadraticCurveTo(cx - eyeSpread, eyeY + 3, cx - eyeSpread + 8, eyeY - 2);
+        ctx.stroke();
+        // Right eye (raised eyebrow)
+        ctx.beginPath();
+        ctx.arc(cx + eyeSpread, eyeY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(cx + eyeSpread + 1, eyeY + 1, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Raised eyebrow
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx + eyeSpread - 8, eyeY - 11);
+        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 14, cx + eyeSpread + 8, eyeY - 10);
+        ctx.stroke();
+        // Mouth: small "hmm"
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 8, cy + 18);
+        ctx.lineTo(cx + 8, cy + 16);
+        ctx.stroke();
+
+      } else if (expression === 'happy') {
+        // Big happy eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY - 2, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 2, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 3.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 3.5, 0, Math.PI * 2); ctx.fill();
+        // Sparkle in eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread - 2, eyeY - 3, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread - 2, eyeY - 3, 1.5, 0, Math.PI * 2); ctx.fill();
+        // Big grin
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 10, 18, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+        // Teeth
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.beginPath();
+        ctx.arc(cx, cy + 10, 16, 0.2 * Math.PI, 0.8 * Math.PI);
+        ctx.fill();
+        // Rosy cheeks
+        ctx.fillStyle = 'rgba(255,150,150,0.3)';
+        ctx.beginPath(); ctx.arc(cx - 30, cy + 8, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 30, cy + 8, 10, 0, Math.PI * 2); ctx.fill();
+
+      } else if (expression === 'sad') {
+        // Sad droopy eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 2, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 2, 3, 0, Math.PI * 2); ctx.fill();
+        // Sad eyebrows
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - eyeSpread - 8, eyeY - 9);
+        ctx.quadraticCurveTo(cx - eyeSpread, eyeY - 12, cx - eyeSpread + 8, eyeY - 8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + eyeSpread - 8, eyeY - 8);
+        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 12, cx + eyeSpread + 8, eyeY - 9);
+        ctx.stroke();
+        // Frown
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 28, 14, 1.2 * Math.PI, 1.8 * Math.PI);
+        ctx.stroke();
+        // Tear
+        ctx.fillStyle = 'rgba(100,180,255,0.6)';
+        ctx.beginPath(); ctx.ellipse(cx - eyeSpread + 8, eyeY + 14, 3, 5, 0.2, 0, Math.PI * 2); ctx.fill();
+
+      } else {
+        // Neutral / default smiley
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 1, 2.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 1, 2.8, 0, Math.PI * 2); ctx.fill();
+        // Slight smile
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 8, 14, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+      }
+
+      // Bow/ribbon for girl
+      if (isGirl) {
+        ctx.fillStyle = lightColor;
+        ctx.beginPath();
+        ctx.moveTo(cx + R * 0.35, cy - R * 0.65);
+        ctx.quadraticCurveTo(cx + R * 0.55, cy - R * 0.85, cx + R * 0.65, cy - R * 0.55);
+        ctx.quadraticCurveTo(cx + R * 0.45, cy - R * 0.6, cx + R * 0.35, cy - R * 0.65);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx + R * 0.35, cy - R * 0.65);
+        ctx.quadraticCurveTo(cx + R * 0.15, cy - R * 0.85, cx + R * 0.08, cy - R * 0.55);
+        ctx.quadraticCurveTo(cx + R * 0.25, cy - R * 0.6, cx + R * 0.35, cy - R * 0.65);
+        ctx.fill();
+        // Knot
+        ctx.beginPath();
+        ctx.arc(cx + R * 0.35, cy - R * 0.65, 4, 0, Math.PI * 2);
+        ctx.fillStyle = darkColor;
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function updateAvatars() {
+      for (const p of [P1, P2]) {
+        drawFace(`face-p${p + 1}`, p, players[p].expression, isAI(p));
+      }
+    }
+
+    /* ================================================================
+       CONFETTI SYSTEM
+       ================================================================ */
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confCtx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiActive = false;
+
+    function resizeConfetti() {
+      confettiCanvas.width = innerWidth;
+      confettiCanvas.height = innerHeight;
+    }
+    resizeConfetti();
+
+    const CONFETTI_COLORS = [
+      '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff9ff3',
+      '#ff6348', '#ffa502', '#7bed9f', '#70a1ff', '#a29bfe',
+      '#fd79a8', '#00cec9', '#e17055', '#fdcb6e', '#81ecec',
+    ];
+
+    function spawnConfetti(centerX, centerY, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 3 + Math.random() * 8;
+        confettiParticles.push({
+          x: centerX || innerWidth / 2,
+          y: centerY || innerHeight * 0.3,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 4,
+          w: 6 + Math.random() * 8,
+          h: 4 + Math.random() * 6,
+          color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.3,
+          life: 1.0,
+          decay: 0.003 + Math.random() * 0.004,
+        });
+      }
+      confettiActive = true;
+    }
+
+    function updateConfetti() {
+      if (!confettiActive) return;
+      confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      for (let i = confettiParticles.length - 1; i >= 0; i--) {
+        const p = confettiParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15; // gravity
+        p.vx *= 0.99;
+        p.rotation += p.rotSpeed;
+        p.life -= p.decay;
+        if (p.life <= 0) { confettiParticles.splice(i, 1); continue; }
+        confCtx.save();
+        confCtx.translate(p.x, p.y);
+        confCtx.rotate(p.rotation);
+        confCtx.globalAlpha = Math.min(1, p.life * 2);
+        confCtx.fillStyle = p.color;
+        confCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        confCtx.restore();
+      }
+      if (confettiParticles.length === 0) confettiActive = false;
     }
 
     /* ================================================================
        GAME STATE
        ================================================================ */
     let board, turn, over, busy, history;
+    let thinkingFormulaInterval = null;
 
     function initGame() {
       board = newBoard();
@@ -1011,69 +1356,154 @@
       chipMeshes.length = 0;
       colHL.forEach(h => h.material.opacity = 0);
       ghostMesh.visible = false;
-      // Remove sparkles
       for (let i = sparkles.children.length - 1; i >= 0; i--)
         sparkles.remove(sparkles.children[i]);
-      document.getElementById('overlay').classList.remove('show');
+
+      // Reset game over UI
+      document.getElementById('game-over-overlay').classList.remove('show');
+      document.getElementById('game-over-banner').classList.remove('show');
+      confettiParticles = [];
+      confettiActive = false;
+      confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+      // Reset expressions
+      players[P1].expression = 'neutral';
+      players[P2].expression = 'neutral';
+      stopThinking();
+      updateAvatars();
+      updatePanels();
       updateHUD();
-      // If current player is AI, start AI move
+
       if (isAI(turn)) {
         busy = true;
-        setTimeout(() => {
-          const aiCol = aiPickCol(board);
-          dropChip(aiCol, turn, (c, r) => afterDrop(c, r, turn));
-        }, 300);
+        startAIMove(turn);
       }
-    }
-
-    function showSettingsOverlay() {
-      document.getElementById('settings-overlay').classList.add('show');
-    }
-
-    function hideSettingsOverlay() {
-      document.getElementById('settings-overlay').classList.remove('show');
-    }
-
-    function applySettings() {
-      const modeSelect = document.getElementById('game-mode');
-      gameMode = modeSelect.value;
-      aiDepth = parseInt(document.getElementById('ai-level').value);
-      hideSettingsOverlay();
-      initGame();
-    }
-
-    function updateLevelValue() {
-      const level = document.getElementById('ai-level').value;
-      document.getElementById('ai-level-value').textContent = level;
     }
 
     function updateHUD() {
       const dot = document.getElementById('pdot');
       const text = document.getElementById('stxt');
-      if (turn === P1) {
-        dot.style.background = '#d4213d';
-        dot.style.color = '#d4213d';
-        if (gameMode === 'human-vs-human') text.textContent = 'Red\'s turn';
-        else if (gameMode === 'human-vs-ai') text.textContent = 'Your turn (Red)';
-        else text.textContent = 'AI Red thinking...';
-      } else {
-        dot.style.background = '#f5c400';
-        dot.style.color = '#f5c400';
-        if (gameMode === 'human-vs-human') text.textContent = 'Yellow\'s turn';
-        else if (gameMode === 'human-vs-ai') text.textContent = 'AI is thinking...';
-        else text.textContent = 'AI Yellow thinking...';
-      }
-    }
+      const color = turn === P1 ? '#d4213d' : '#f5c400';
+      dot.style.background = color;
+      dot.style.color = color;
 
-    function showOver(title, msg) {
-      over = true;
-      document.getElementById('mtitle').textContent = title;
-      document.getElementById('mmsg').textContent = msg;
-      document.getElementById('overlay').classList.add('show');
+      const name = playerName(turn);
+      if (isAI(turn)) {
+        text.textContent = `${name} is thinking...`;
+      } else {
+        text.textContent = `${name}'s turn`;
+      }
+
+      // Active turn glow on panels
+      document.getElementById('panel-p1').classList.toggle('active-turn', turn === P1 && !over);
+      document.getElementById('panel-p2').classList.toggle('active-turn', turn === P2 && !over);
     }
 
     /* ================================================================
-       DROP ANIMATION (spring bounce)
+       THINKING ANIMATION
+       ================================================================ */
+    function startThinking(player) {
+      players[player].expression = 'thinking';
+      updateAvatars();
+      const pIdx = player + 1;
+      document.getElementById(`think-p${pIdx}`).classList.add('show');
+      document.getElementById(`dots-p${pIdx}`).classList.add('show');
+
+      // Cycle formulas
+      let fi = Math.floor(Math.random() * THINK_FORMULAS.length);
+      const el = document.getElementById(`think-p${pIdx}`);
+      el.textContent = THINK_FORMULAS[fi];
+      thinkingFormulaInterval = setInterval(() => {
+        fi = (fi + 1) % THINK_FORMULAS.length;
+        el.textContent = THINK_FORMULAS[fi];
+      }, 600);
+    }
+
+    function stopThinking() {
+      if (thinkingFormulaInterval) {
+        clearInterval(thinkingFormulaInterval);
+        thinkingFormulaInterval = null;
+      }
+      for (const pIdx of [1, 2]) {
+        document.getElementById(`think-p${pIdx}`).classList.remove('show');
+        document.getElementById(`dots-p${pIdx}`).classList.remove('show');
+      }
+    }
+
+    function startAIMove(player) {
+      startThinking(player);
+      updateHUD();
+
+      // Run AI in a timeout to let the thinking animation show
+      const startTime = performance.now();
+      const MIN_THINK_TIME = 800; // minimum ms to show thinking animation
+
+      setTimeout(() => {
+        const aiCol = aiPickCol(board, player);
+        const elapsed = performance.now() - startTime;
+        const remaining = Math.max(0, MIN_THINK_TIME - elapsed);
+
+        setTimeout(() => {
+          stopThinking();
+          players[player].expression = 'neutral';
+          updateAvatars();
+          dropChip(aiCol, player, (c, r) => afterDrop(c, r, player));
+        }, remaining);
+      }, 100);
+    }
+
+    /* ================================================================
+       GAME OVER - SPECTACULAR
+       ================================================================ */
+    function showGameOver(winner) {
+      over = true;
+      const titleEl = document.getElementById('winner-title');
+      const subEl = document.getElementById('winner-sub');
+      const banner = document.getElementById('game-over-banner');
+      const overlay = document.getElementById('game-over-overlay');
+
+      if (winner === null) {
+        // Draw
+        titleEl.textContent = "It's a Draw!";
+        titleEl.className = 'winner-title draw';
+        subEl.textContent = 'No moves remaining - what a battle!';
+        players[P1].expression = 'neutral';
+        players[P2].expression = 'neutral';
+      } else {
+        const winnerName = playerName(winner);
+        const loser = winner === P1 ? P2 : P1;
+
+        titleEl.textContent = `${winnerName} Wins!`;
+        titleEl.className = 'winner-title ' + (winner === P1 ? 'p1-win' : 'p2-win');
+        subEl.textContent = 'Amazing connect four!';
+
+        // Winner happy, loser sad
+        players[winner].expression = 'happy';
+        players[loser].expression = 'sad';
+
+        // Confetti bursts
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            spawnConfetti(
+              innerWidth * (0.2 + Math.random() * 0.6),
+              innerHeight * (0.1 + Math.random() * 0.3),
+              80
+            );
+          }, i * 400);
+        }
+      }
+
+      updateAvatars();
+
+      // Show banner with delay for dramatic effect
+      overlay.classList.add('show');
+      setTimeout(() => {
+        banner.classList.add('show');
+      }, 600);
+    }
+
+    /* ================================================================
+       DROP ANIMATION
        ================================================================ */
     const GRAVITY = -0.032;
     const BOUNCE = 0.25;
@@ -1110,12 +1540,9 @@
       requestAnimationFrame(tick);
     }
 
-    /* ================================================================
-       WIN SPARKLE PARTICLES
-       ================================================================ */
+    /* ── Win sparkles ── */
     const sparkles = new THREE.Group();
     scene.add(sparkles);
-
     const sparkGeo = new THREE.SphereGeometry(0.04, 6, 4);
     const sparkMatA = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const sparkMatB = new THREE.MeshBasicMaterial({ color: 0xffee88 });
@@ -1133,12 +1560,10 @@
       }
     }
 
-    /* ================================================================
-       WIN HIGHLIGHT
-       ================================================================ */
+    /* ── Win highlight ── */
     function markWinners(col, row) {
       const p = board[col][row];
-      const axes = [[[1, 0], [-1, 0]], [[0, 1], [0, -1]], [[1, 1], [-1, -1]], [[1, -1], [-1, 1]]];
+      const axes = [[[1,0],[-1,0]],[[0,1],[0,-1]],[[1,1],[-1,-1]],[[1,-1],[-1,1]]];
       const keys = new Set();
       for (const [da, db] of axes) {
         const line = [{ col, row }];
@@ -1167,36 +1592,22 @@
 
       if (isWin(board, col, row)) {
         markWinners(col, row);
-        if (player === P1) {
-          if (gameMode === 'human-vs-human') showOver('Red Wins!', 'Red wins the game!');
-          else if (gameMode === 'human-vs-ai') showOver('You Win!', 'Red wins \u2014 well played!');
-          else showOver('AI Red Wins!', 'Red AI wins the game!');
-        } else {
-          if (gameMode === 'human-vs-human') showOver('Yellow Wins!', 'Yellow wins the game!');
-          else if (gameMode === 'human-vs-ai') showOver('AI Wins!', 'Yellow wins this round.');
-          else showOver('AI Yellow Wins!', 'Yellow AI wins the game!');
-        }
+        showGameOver(player);
         busy = false;
         return;
       }
       if (isFull(board)) {
-        showOver("It's a Draw!", 'No moves remaining.');
+        showGameOver(null);
         busy = false;
         return;
       }
 
-      // switch turn
       turn = turn === P1 ? P2 : P1;
       updateHUD();
 
       if (isAI(turn)) {
-        // AI move after a short delay
-        setTimeout(() => {
-          const aiCol = aiPickCol(board);
-          dropChip(aiCol, turn, (c, r) => afterDrop(c, r, turn));
-        }, 300);
+        startAIMove(turn);
       } else {
-        // human's turn, enable interaction
         busy = false;
       }
     }
@@ -1205,19 +1616,20 @@
       if (over || busy || !isHuman(turn)) return;
       if (col < 0 || col >= COLS) return;
       if (colHeight(board, col) >= ROWS) return;
-
       busy = true;
       ghostMesh.visible = false;
       colHL.forEach(h => h.material.opacity = 0);
       dropChip(col, turn, (c, r) => afterDrop(c, r, turn));
     }
 
-    /* ================================================================
-       UNDO
-       ================================================================ */
+    /* ── Undo ── */
     function doUndo() {
-      if (busy || history.length < 2) return;
-      for (let i = 0; i < 2; i++) {
+      if (busy || over) return;
+      // Undo back to current human player's last move
+      const undoCount = isAI(turn === P1 ? P2 : P1) ? 2 : 1;
+      if (history.length < undoCount) return;
+      for (let i = 0; i < undoCount; i++) {
+        if (history.length === 0) break;
         const { col } = history.pop();
         const row = colHeight(board, col) - 1;
         remove(board, col);
@@ -1225,13 +1637,15 @@
         if (idx >= 0) { scene.remove(chipMeshes[idx].group); chipMeshes.splice(idx, 1); }
       }
       over = false;
-      turn = P1;
+      // Determine whose turn it should be
+      turn = history.length > 0 ? (history[history.length - 1].player === P1 ? P2 : P1) : P1;
       updateHUD();
-      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('game-over-overlay').classList.remove('show');
+      document.getElementById('game-over-banner').classList.remove('show');
     }
 
     /* ================================================================
-       RAYCASTING
+       RAYCASTING & POINTER
        ================================================================ */
     const raycaster = new THREE.Raycaster();
     const mouse2 = new THREE.Vector2();
@@ -1240,11 +1654,9 @@
       const rect = renderer.domElement.getBoundingClientRect();
       let clientX, clientY;
       if (e.touches && e.touches.length) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
+        clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
       } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
+        clientX = e.clientX; clientY = e.clientY;
       }
       mouse2.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       mouse2.y = ((clientY - rect.top) / rect.height) * -2 + 1;
@@ -1255,14 +1667,14 @@
       return (col >= 0 && col < COLS) ? col : -1;
     }
 
-    /* ================================================================
-       POINTER EVENTS
-       ================================================================ */
     function handlePointerMove(e) {
       const col = colFromPointer(e);
-      const canPlay = !over && !busy && turn === P1;
+      const canPlay = !over && !busy && isHuman(turn);
       colHL.forEach((h, i) => h.material.opacity = (canPlay && i === col) ? 0.07 : 0);
       if (canPlay && col >= 0 && colHeight(board, col) < ROWS) {
+        const pColor = turn === P1 ? P1_COL : P2_COL;
+        ghostMat.color.setHex(pColor);
+        ghostMat.emissive.setHex(pColor);
         ghostMesh.visible = true;
         ghostMesh.position.set(colX(col), rowY(ROWS - 1) + CELL * 1.35, BD / 2 - 0.06);
       } else {
@@ -1276,40 +1688,109 @@
     }
 
     renderer.domElement.addEventListener('mousemove', handlePointerMove);
-    renderer.domElement.addEventListener('touchmove', e => {
-      e.preventDefault(); // prevent scrolling
-      handlePointerMove(e);
-    }, { passive: false });
-
+    renderer.domElement.addEventListener('touchmove', e => { e.preventDefault(); handlePointerMove(e); }, { passive: false });
     renderer.domElement.addEventListener('click', e => playerDrop(colFromPointer(e)));
     renderer.domElement.addEventListener('touchstart', e => {
-      e.preventDefault(); // prevent double tap zoom
+      e.preventDefault();
       const col = colFromPointer(e);
       if (col >= 0) playerDrop(col);
     });
-
     renderer.domElement.addEventListener('mouseleave', handlePointerLeave);
     renderer.domElement.addEventListener('touchend', handlePointerLeave);
     renderer.domElement.addEventListener('touchcancel', handlePointerLeave);
+
+    /* ================================================================
+       PANEL UI LOGIC
+       ================================================================ */
+    function updatePanels() {
+      for (const p of [P1, P2]) {
+        const pIdx = p + 1;
+        const panel = document.getElementById(`panel-p${pIdx}`);
+        const nameEl = document.getElementById(`name-p${pIdx}`);
+        const nameRow = document.getElementById(`name-row-p${pIdx}`);
+        const aiRow = document.getElementById(`ai-level-row-p${pIdx}`);
+        const nameInput = document.getElementById(`name-input-p${pIdx}`);
+
+        // Update toggle buttons
+        panel.querySelectorAll('.toggle-opt').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.type === players[p].type);
+        });
+
+        if (isHuman(p)) {
+          nameRow.style.display = 'flex';
+          aiRow.style.display = 'none';
+          nameEl.textContent = players[p].name || (p === P1 ? 'Player 1' : 'Player 2');
+          nameInput.value = players[p].name;
+        } else {
+          nameRow.style.display = 'none';
+          aiRow.style.display = 'flex';
+          nameEl.textContent = players[p].name;
+          document.getElementById(`ai-level-p${pIdx}`).value = players[p].aiLevel;
+          document.getElementById(`ai-level-val-p${pIdx}`).textContent = players[p].aiLevel;
+        }
+      }
+      updateAvatars();
+    }
+
+    // Toggle buttons
+    document.querySelectorAll('.toggle-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = parseInt(btn.dataset.player);
+        const newType = btn.dataset.type;
+        if (players[p].type === newType) return;
+
+        players[p].type = newType;
+        if (newType === 'ai') {
+          // Assign AI persona
+          const otherAI = players[1 - p].type === 'ai' ? players[1 - p].aiPersona : null;
+          players[p].aiPersona = randomPersona(otherAI);
+          players[p].name = 'AI ' + players[p].aiPersona.name;
+        } else {
+          players[p].aiPersona = null;
+          players[p].name = '';
+        }
+        updatePanels();
+        initGame();
+      });
+    });
+
+    // Name inputs
+    for (const p of [P1, P2]) {
+      const pIdx = p + 1;
+      const input = document.getElementById(`name-input-p${pIdx}`);
+      const editBtn = document.getElementById(`edit-p${pIdx}`);
+
+      input.addEventListener('change', () => {
+        players[p].name = input.value.trim();
+        document.getElementById(`name-p${pIdx}`).textContent = players[p].name || (p === P1 ? 'Player 1' : 'Player 2');
+        updateHUD();
+      });
+
+      editBtn.addEventListener('click', () => {
+        input.focus();
+        input.select();
+      });
+    }
+
+    // AI level sliders
+    for (const p of [P1, P2]) {
+      const pIdx = p + 1;
+      const slider = document.getElementById(`ai-level-p${pIdx}`);
+      const valEl = document.getElementById(`ai-level-val-p${pIdx}`);
+      slider.addEventListener('input', () => {
+        players[p].aiLevel = parseInt(slider.value);
+        valEl.textContent = slider.value;
+      });
+    }
 
     /* ================================================================
        BUTTONS
        ================================================================ */
     document.getElementById('btn-undo').addEventListener('click', doUndo);
     document.getElementById('btn-new').addEventListener('click', initGame);
-    document.getElementById('btn-again').addEventListener('click', initGame);
+    document.getElementById('btn-restart').addEventListener('click', initGame);
 
-    // Settings button
-    document.getElementById('btn-settings').addEventListener('click', showSettingsOverlay);
-    document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
-    document.getElementById('btn-settings-cancel').addEventListener('click', hideSettingsOverlay);
-    const aiLevelSlider = document.getElementById('ai-level');
-    aiLevelSlider.addEventListener('input', updateLevelValue);
-    // Initialize level display and select
-    updateLevelValue();
-    document.getElementById('game-mode').value = gameMode;
-
-    // Column buttons for mobile/touch
+    // Column buttons (mobile)
     const colButtons = document.getElementById('column-buttons');
     if (colButtons) {
       for (const btn of colButtons.querySelectorAll('button')) {
@@ -1327,6 +1808,7 @@
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
+      resizeConfetti();
     });
 
     /* ================================================================
@@ -1355,10 +1837,13 @@
         s.position.x += s.userData.vx;
         s.position.y += s.userData.vy;
         s.position.z += s.userData.vz;
-        s.userData.vy -= 0.004;  // gravity
+        s.userData.vy -= 0.004;
         s.scale.setScalar(s.userData.life);
         s.material.opacity = s.userData.life;
       }
+
+      // Update confetti
+      updateConfetti();
 
       renderer.render(scene, camera);
     })();
