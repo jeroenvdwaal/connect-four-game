@@ -402,7 +402,7 @@
     }
     #game-over-overlay.show {
       display: block;
-      pointer-events: auto;
+      pointer-events: none;
     }
 
     #confetti-canvas {
@@ -614,7 +614,7 @@
           <span class="ai-level-name" id="ai-level-name-p1">Hard</span>
         </div>
         <div class="ai-level-slider-wrap">
-          <input type="range" class="ai-level-slider" id="ai-level-p1" min="1" max="8" value="6">
+          <input type="range" class="ai-level-slider" id="ai-level-p1" min="1" max="6" value="6">
         </div>
       </div>
     </div>
@@ -647,7 +647,7 @@
           <span class="ai-level-name" id="ai-level-name-p2">Hard</span>
         </div>
         <div class="ai-level-slider-wrap">
-          <input type="range" class="ai-level-slider" id="ai-level-p2" min="1" max="8" value="6">
+          <input type="range" class="ai-level-slider" id="ai-level-p2" min="1" max="6" value="6">
         </div>
       </div>
     </div>
@@ -738,18 +738,20 @@
     ];
 
     const LEVEL_NAMES = [
-      'Easy',       // 1
-      'Beginner',   // 2
-      'Casual',     // 3
-      'Normal',     // 4
-      'Tricky',     // 5
-      'Hard',       // 6
-      'Expert',     // 7
-      'Very Hard',  // 8
+      'Easy',       // 1 -> engine 2
+      'Beginner',   // 2 -> engine 3
+      'Casual',     // 3 -> engine 4
+      'Normal',     // 4 -> engine 5
+      'Tricky',     // 5 -> engine 6
+      'Hard',       // 6 -> engine 7
     ];
 
     function levelName(lvl) {
-      return LEVEL_NAMES[Math.max(0, Math.min(7, lvl - 1))];
+      return LEVEL_NAMES[Math.max(0, Math.min(5, lvl - 1))];
+    }
+
+    function engineDepth(level) {
+      return level + 1; // map 1-6 to 2-7
     }
 
     /* ================================================================
@@ -867,7 +869,7 @@
       const isMaximizer = player === P1;
       let best = isMaximizer ? -Infinity : Infinity;
       let col = Math.floor(COLS / 2);
-      const depth = players[player].aiLevel;
+      const depth = engineDepth(players[player].aiLevel);
       for (let c = 0; c < COLS; c++) {
         if (colHeight(bc, c) >= ROWS) continue;
         const row = insert(bc, c, player);
@@ -1192,12 +1194,6 @@
       const body = new THREE.Mesh(chipGeo, [sideMat, capMat, backCapMat]);
       body.castShadow = true; body.receiveShadow = true;
       group.add(body);
-      for (let i = 0; i < SCALLOP_N; i++) {
-        const angle = (i / SCALLOP_N) * Math.PI * 2;
-        const bump = new THREE.Mesh(sclopGeo, sideMat);
-        bump.position.set(Math.cos(angle) * (CHIP_R + 0.005), 0.06, -Math.sin(angle) * (CHIP_R + 0.005));
-        bump.castShadow = true; group.add(bump);
-      }
       return { group, mats: [sideMat, capMat, backCapMat] };
     }
 
@@ -1522,6 +1518,15 @@
       confettiActive = true;
     }
 
+    function spawnConfettiAbovePanel(player) {
+      const panel = document.getElementById(`panel-p${player + 1}`);
+      if (!panel) return;
+      const rect = panel.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top - 20;
+      spawnConfetti(centerX, centerY, 80);
+    }
+
     function updateConfetti() {
       if (!confettiActive) return;
       confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
@@ -1570,6 +1575,12 @@
       document.getElementById('play-btn').classList.remove('hidden');
       document.getElementById('status').style.display = 'none';
       document.getElementById('lobby-status').style.display = 'inline';
+    }
+
+    function unlockPanelsOnly() {
+      for (const p of [P1, P2]) {
+        document.getElementById(`panel-p${p + 1}`).classList.remove('locked');
+      }
     }
 
     /* ── Lobby (settings phase) ── */
@@ -1630,6 +1641,9 @@
       updateAvatars();
       updatePanels();
       lockSettings();
+      // Confetti above player panels
+      spawnConfettiAbovePanel(P1);
+      spawnConfettiAbovePanel(P2);
       updateHUD();
 
       if (isAI(turn)) {
@@ -1715,6 +1729,7 @@
        ================================================================ */
     function showGameOver(winner) {
       over = true;
+      unlockPanelsOnly();
       const titleEl = document.getElementById('winner-title');
       const subEl = document.getElementById('winner-sub');
       const banner = document.getElementById('game-over-banner');
@@ -2108,9 +2123,11 @@
         }
       }
 
-      // Spin winning chips
+      // Float winning chips up and down
       for (const e of chipMeshes) {
-        if (e.winner) e.group.rotation.z += dt * 1.5;
+        if (e.winner) {
+          e.group.position.y = rowY(e.row) + Math.sin(clock * 3) * 0.08;
+        }
       }
 
       // Animate sonar rings (expand + fade)
