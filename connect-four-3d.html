@@ -23,11 +23,11 @@
     /* ── Graffiti title ── */
     #game-title {
       position: fixed;
-      top: 10px;
+      top: 6px;
       left: 50%;
       transform: translateX(-50%);
       font-family: 'Bungee Shade', 'Permanent Marker', cursive;
-      font-size: 1.6em;
+      font-size: 1.4em;
       background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #ff6b6b);
       background-size: 300% 300%;
       -webkit-background-clip: text;
@@ -39,6 +39,7 @@
       text-shadow: none;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
       white-space: nowrap;
+      line-height: 1.1;
     }
 
     @keyframes gradientShift {
@@ -49,12 +50,11 @@
     /* ── Top HUD (compact) ── */
     #hud {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      top: 36px; left: 0; right: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 12px 28px;
-      background: linear-gradient(180deg, rgba(10,10,30,0.7) 0%, transparent 100%);
+      padding: 4px 28px;
       z-index: 10;
       pointer-events: none;
       gap: 16px;
@@ -63,7 +63,7 @@
 
     #status {
       font-family: 'Bangers', cursive;
-      font-size: 1.1em;
+      font-size: 1.05em;
       letter-spacing: 1px;
       display: flex;
       align-items: center;
@@ -78,7 +78,7 @@
 
     .hud-btns {
       position: fixed;
-      top: 12px; right: 16px;
+      top: 8px; right: 16px;
       display: flex; gap: 8px;
       z-index: 11;
     }
@@ -126,7 +126,7 @@
     .player-panel.p2 { right: 12px; --panel-glow: rgba(245,196,0,0.5); }
 
     .panel-chip-avatar {
-      width: 90px; height: 90px;
+      width: 100px; height: 100px;
       border-radius: 50%;
       position: relative;
       margin-bottom: 4px;
@@ -136,60 +136,80 @@
       border-radius: 50%;
     }
 
-    /* Thought bubble */
-    .think-bubble {
+    /* Thought cloud trail: small circles leading up to the main cloud */
+    .think-trail {
       position: absolute;
-      top: -38px;
+      top: -12px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(255,255,255,0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .think-trail.show { opacity: 1; }
+    .think-mini-cloud {
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      animation: cloudFloat 2s ease-in-out infinite;
+    }
+    .think-mini-cloud:nth-child(1) { width: 8px; height: 8px; margin-bottom: 3px; animation-delay: 0s; }
+    .think-mini-cloud:nth-child(2) { width: 12px; height: 12px; margin-bottom: 4px; animation-delay: 0.3s; }
+    .think-mini-cloud:nth-child(3) { width: 18px; height: 16px; margin-bottom: 3px; border-radius: 10px; animation-delay: 0.6s; }
+
+    @keyframes cloudFloat {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(3px); }
+    }
+
+    /* Main thought cloud */
+    .think-bubble {
+      position: absolute;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.94);
       color: #333;
-      padding: 4px 10px;
-      border-radius: 14px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.7em;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-family: 'Permanent Marker', 'Courier New', monospace;
+      font-size: 1.05em;
+      font-weight: bold;
       white-space: nowrap;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 3px 16px rgba(0,0,0,0.25), inset 0 -2px 4px rgba(0,0,0,0.05);
+      animation: none;
+    }
+    /* Cloud bumps via pseudo-elements */
+    .think-bubble::before {
+      content: '';
+      position: absolute;
+      top: -8px; left: 12px;
+      width: 22px; height: 16px;
+      background: rgba(255,255,255,0.94);
+      border-radius: 50%;
     }
     .think-bubble::after {
       content: '';
       position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-top: 8px solid rgba(255,255,255,0.92);
-    }
-    .think-bubble.show { opacity: 1; }
-
-    /* Small thought dots */
-    .think-dots {
-      position: absolute;
-      bottom: -18px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 3px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .think-dots.show { opacity: 1; }
-    .think-dot {
-      width: 6px; height: 6px;
+      top: -6px; right: 14px;
+      width: 18px; height: 14px;
+      background: rgba(255,255,255,0.94);
       border-radius: 50%;
-      background: rgba(255,255,255,0.7);
-      animation: dotPulse 1.2s ease infinite;
     }
-    .think-dot:nth-child(2) { animation-delay: 0.2s; width: 5px; height: 5px; }
-    .think-dot:nth-child(3) { animation-delay: 0.4s; width: 4px; height: 4px; }
+    .think-bubble.show {
+      opacity: 1;
+      animation: cloudPulse 2s ease-in-out infinite;
+    }
 
-    @keyframes dotPulse {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1.2); }
+    @keyframes cloudPulse {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.06); }
     }
 
     .panel-name {
@@ -272,18 +292,36 @@
 
     .ai-level-row {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      gap: 4px;
       font-size: 0.75em;
       color: #aaa;
+      width: 100%;
     }
-    .ai-level-row label {
+    .ai-level-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .ai-level-header label {
       font-family: 'Bangers', cursive;
       letter-spacing: 0.5px;
       white-space: nowrap;
     }
+    .ai-level-name {
+      font-family: 'Permanent Marker', cursive;
+      font-size: 1.15em;
+      color: #fff;
+      text-align: right;
+    }
+    .ai-level-slider-wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
     .ai-level-slider {
-      flex: 1;
+      width: 100%;
       -webkit-appearance: none;
       appearance: none;
       height: 4px;
@@ -293,17 +331,11 @@
     }
     .ai-level-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 14px; height: 14px;
+      width: 16px; height: 16px;
       border-radius: 50%;
       background: #fff;
       cursor: pointer;
-    }
-    .ai-level-val {
-      font-family: 'Bangers', cursive;
-      font-size: 1.1em;
-      min-width: 16px;
-      text-align: center;
-      color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
 
     /* ── Game Over overlay ── */
@@ -430,11 +462,12 @@
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
-      .player-panel { width: 140px; padding: 12px 8px; }
-      .panel-chip-avatar { width: 70px; height: 70px; }
+      .player-panel { width: 150px; padding: 12px 8px; }
+      .panel-chip-avatar { width: 80px; height: 80px; }
       .panel-name { font-size: 0.95em; }
       .toggle-opt { padding: 4px 8px; font-size: 0.75em; }
-      #game-title { font-size: 1.2em; }
+      #game-title { font-size: 1.1em; }
+      .think-bubble { font-size: 0.9em; top: -70px; }
     }
 
     @media (max-width: 700px) {
@@ -449,22 +482,29 @@
       }
       .player-panel.p1 { left: 4px; }
       .player-panel.p2 { right: 4px; }
-      .panel-chip-avatar { width: 50px; height: 50px; }
+      .panel-chip-avatar { width: 56px; height: 56px; }
       .panel-name { font-size: 0.8em; }
       .toggle-opt { padding: 3px 6px; font-size: 0.7em; }
       #column-buttons { display: flex; }
-      #game-title { font-size: 1em; top: 6px; }
-      .hud-btns { top: 6px; right: 6px; }
+      #game-title { font-size: 0.9em; top: 4px; }
+      #hud { top: 28px; }
+      .hud-btns { top: 4px; right: 6px; }
       .hud-btn { font-size: 0.75em; padding: 4px 10px; }
       .winner-title { font-size: 1.6em; }
       .winner-sub { font-size: 0.9em; }
       #game-over-banner { bottom: 20px; }
+      .think-bubble { font-size: 0.8em; top: -55px; padding: 5px 10px; }
+      .think-trail { top: -8px; }
+      .think-mini-cloud:nth-child(1) { width: 5px; height: 5px; }
+      .think-mini-cloud:nth-child(2) { width: 8px; height: 8px; }
+      .think-mini-cloud:nth-child(3) { width: 12px; height: 10px; }
     }
 
     @media (max-width: 480px) {
       .player-panel { width: 100px; padding: 6px 4px; gap: 6px; }
-      .panel-chip-avatar { width: 42px; height: 42px; }
+      .panel-chip-avatar { width: 44px; height: 44px; }
       .ai-level-row { font-size: 0.65em; }
+      .ai-level-name { font-size: 1em; }
       #column-buttons > button { width: 36px; height: 36px; font-size: 0.95em; }
     }
 
@@ -493,10 +533,12 @@
   <!-- Player 1 panel (Red, left) -->
   <div class="player-panel p1" id="panel-p1">
     <div class="panel-chip-avatar" id="avatar-p1">
-      <canvas id="face-p1" width="180" height="180"></canvas>
-      <div class="think-bubble" id="think-p1">E=mc<sup>2</sup></div>
-      <div class="think-dots" id="dots-p1">
-        <div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div>
+      <canvas id="face-p1" width="256" height="256"></canvas>
+      <div class="think-bubble" id="think-p1">E=mc2</div>
+      <div class="think-trail" id="trail-p1">
+        <div class="think-mini-cloud"></div>
+        <div class="think-mini-cloud"></div>
+        <div class="think-mini-cloud"></div>
       </div>
     </div>
     <div class="panel-name" id="name-p1">Player 1</div>
@@ -510,9 +552,13 @@
         <button class="edit-btn" id="edit-p1" title="Edit name">&#9998;</button>
       </div>
       <div class="ai-level-row" id="ai-level-row-p1" style="display:none">
-        <label>Level</label>
-        <input type="range" class="ai-level-slider" id="ai-level-p1" min="1" max="10" value="6">
-        <span class="ai-level-val" id="ai-level-val-p1">6</span>
+        <div class="ai-level-header">
+          <label>Level</label>
+          <span class="ai-level-name" id="ai-level-name-p1">Hard</span>
+        </div>
+        <div class="ai-level-slider-wrap">
+          <input type="range" class="ai-level-slider" id="ai-level-p1" min="1" max="8" value="6">
+        </div>
       </div>
     </div>
   </div>
@@ -520,10 +566,12 @@
   <!-- Player 2 panel (Yellow, right) -->
   <div class="player-panel p2" id="panel-p2">
     <div class="panel-chip-avatar" id="avatar-p2">
-      <canvas id="face-p2" width="180" height="180"></canvas>
+      <canvas id="face-p2" width="256" height="256"></canvas>
       <div class="think-bubble" id="think-p2">7x6=42</div>
-      <div class="think-dots" id="dots-p2">
-        <div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div>
+      <div class="think-trail" id="trail-p2">
+        <div class="think-mini-cloud"></div>
+        <div class="think-mini-cloud"></div>
+        <div class="think-mini-cloud"></div>
       </div>
     </div>
     <div class="panel-name" id="name-p2">AI Luna</div>
@@ -537,9 +585,13 @@
         <button class="edit-btn" id="edit-p2" title="Edit name">&#9998;</button>
       </div>
       <div class="ai-level-row" id="ai-level-row-p2">
-        <label>Level</label>
-        <input type="range" class="ai-level-slider" id="ai-level-p2" min="1" max="10" value="6">
-        <span class="ai-level-val" id="ai-level-val-p2">6</span>
+        <div class="ai-level-header">
+          <label>Level</label>
+          <span class="ai-level-name" id="ai-level-name-p2">Hard</span>
+        </div>
+        <div class="ai-level-slider-wrap">
+          <input type="range" class="ai-level-slider" id="ai-level-p2" min="1" max="8" value="6">
+        </div>
       </div>
     </div>
   </div>
@@ -605,6 +657,21 @@
       'a\u00B2+b\u00B2', '\u221A144', '4!=24', 'x\u2192\u221E',
       '\u0394v/\u0394t', '\u222Bf(x)', 'n!/(n-k)!', '2\u2077=128',
     ];
+
+    const LEVEL_NAMES = [
+      'Easy',       // 1
+      'Beginner',   // 2
+      'Casual',     // 3
+      'Normal',     // 4
+      'Tricky',     // 5
+      'Hard',       // 6
+      'Expert',     // 7
+      'Very Hard',  // 8
+    ];
+
+    function levelName(lvl) {
+      return LEVEL_NAMES[Math.max(0, Math.min(7, lvl - 1))];
+    }
 
     /* ================================================================
        PLAYER STATE
@@ -1058,19 +1125,25 @@
     /* ================================================================
        AVATAR FACE DRAWING
        ================================================================ */
-    function drawFace(canvasId, player, expression, isAiPlayer) {
+    // Blink state per player (managed in render loop)
+    let blinkState = [0, 0]; // 0=open, 0..1=closing/opening
+    let blinkTimer = [3 + Math.random() * 4, 3 + Math.random() * 4];
+    let eyeScale = [1, 1]; // subtle eye size pulse
+    let eyeScaleDir = [1, 1];
+
+    function drawFace(canvasId, player, expression, isAiPlayer, blink) {
       const canvas = document.getElementById(canvasId);
       const ctx = canvas.getContext('2d');
-      const S = canvas.width;
-      const cx = S / 2, cy = S / 2, R = S / 2 - 4;
+      const S = canvas.width; // 256
+      const cx = S / 2, cy = S / 2, R = S / 2 - 6;
       ctx.clearRect(0, 0, S, S);
 
       const baseColor = player === P1 ? '#d4213d' : '#f5c400';
       const darkColor = player === P1 ? '#a01a30' : '#c09e00';
       const lightColor = player === P1 ? '#ff6b81' : '#ffe082';
 
-      // Chip body (translucent if AI)
-      const alpha = isAiPlayer ? 0.8 : 0.5;
+      // Chip body
+      const alpha = isAiPlayer ? 0.85 : 0.5;
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, R, 0, Math.PI * 2);
@@ -1079,200 +1152,289 @@
       ctx.fill();
 
       // Sheen
-      const grad = ctx.createRadialGradient(cx - 15, cy - 20, 10, cx, cy, R);
-      grad.addColorStop(0, 'rgba(255,255,255,0.3)');
-      grad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-      grad.addColorStop(1, 'rgba(0,0,0,0.15)');
+      const grad = ctx.createRadialGradient(cx - 20, cy - 28, 14, cx, cy, R);
+      grad.addColorStop(0, 'rgba(255,255,255,0.35)');
+      grad.addColorStop(0.4, 'rgba(255,255,255,0.05)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.18)');
       ctx.fillStyle = grad;
       ctx.globalAlpha = 1;
       ctx.fill();
 
       // Rim
       ctx.beginPath();
-      ctx.arc(cx, cy, R - 2, 0, Math.PI * 2);
+      ctx.arc(cx, cy, R - 3, 0, Math.PI * 2);
       ctx.strokeStyle = darkColor;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.globalAlpha = 0.5;
       ctx.stroke();
       ctx.restore();
 
       if (!isAiPlayer) {
-        // Human: just draw a simple person silhouette
+        // Human: person silhouette
         ctx.save();
-        ctx.globalAlpha = 0.7;
+        ctx.globalAlpha = 0.75;
         ctx.fillStyle = '#fff';
-        // Head
-        ctx.beginPath();
-        ctx.arc(cx, cy - 12, 18, 0, Math.PI * 2);
-        ctx.fill();
-        // Body
-        ctx.beginPath();
-        ctx.arc(cx, cy + 28, 26, Math.PI * 1.1, Math.PI * 1.9, false);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy - 16, 24, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy + 38, 34, Math.PI * 1.08, Math.PI * 1.92, false); ctx.fill();
         ctx.restore();
         return;
       }
 
-      // AI face
+      // AI face - all sizes scaled for 256px canvas
       ctx.save();
       ctx.globalAlpha = 1;
 
       const persona = players[player].aiPersona;
       const isGirl = persona && persona.gender === 'girl';
+      const bl = blink || 0; // 0=open, 1=fully closed
 
-      // Hair for girl personas (decorative)
+      // Hair for girl personas
       if (isGirl) {
         ctx.fillStyle = darkColor;
-        // Side bangs
         ctx.beginPath();
-        ctx.ellipse(cx - R * 0.6, cy - R * 0.2, 14, 28, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(cx - R * 0.55, cy - R * 0.15, 20, 38, -0.3, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.ellipse(cx + R * 0.6, cy - R * 0.2, 14, 28, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(cx + R * 0.55, cy - R * 0.15, 20, 38, 0.3, 0, Math.PI * 2);
         ctx.fill();
-        // Top puff
         ctx.beginPath();
-        ctx.ellipse(cx, cy - R * 0.7, 30, 14, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy - R * 0.68, 40, 20, 0, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Eyes
-      const eyeY = cy - 8;
-      const eyeSpread = 20;
+      // Eye positions and sizes (scaled up)
+      const eyeY = cy - 10;
+      const eyeSpread = 30;
+      const es = eyeScale[player]; // subtle size pulse
 
       if (expression === 'thinking') {
-        // Concentrated eyes: slightly squinting
+        // LEFT EYE: squinting
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.lineCap = 'round';
-        // Left eye
         ctx.beginPath();
-        ctx.moveTo(cx - eyeSpread - 8, eyeY - 2);
-        ctx.quadraticCurveTo(cx - eyeSpread, eyeY + 3, cx - eyeSpread + 8, eyeY - 2);
+        ctx.moveTo(cx - eyeSpread - 12, eyeY);
+        ctx.quadraticCurveTo(cx - eyeSpread, eyeY + 5, cx - eyeSpread + 12, eyeY);
         ctx.stroke();
-        // Right eye (raised eyebrow)
-        ctx.beginPath();
-        ctx.arc(cx + eyeSpread, eyeY, 5, 0, Math.PI * 2);
+
+        // RIGHT EYE: open, looking up-right
+        const reR = 9 * es;
         ctx.fillStyle = '#fff';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 2, reR, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#333';
-        ctx.beginPath();
-        ctx.arc(cx + eyeSpread + 1, eyeY + 1, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        // Raised eyebrow
+        ctx.beginPath(); ctx.arc(cx + eyeSpread + 2, eyeY - 3, 4.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 5, 2, 0, Math.PI * 2); ctx.fill();
+
+        // Raised right eyebrow
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
-        ctx.moveTo(cx + eyeSpread - 8, eyeY - 11);
-        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 14, cx + eyeSpread + 8, eyeY - 10);
+        ctx.moveTo(cx + eyeSpread - 12, eyeY - 16);
+        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 22, cx + eyeSpread + 12, eyeY - 14);
         ctx.stroke();
-        // Mouth: small "hmm"
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2.5;
+        // Left eyebrow (flat, concentrated)
         ctx.beginPath();
-        ctx.moveTo(cx - 8, cy + 18);
-        ctx.lineTo(cx + 8, cy + 16);
+        ctx.moveTo(cx - eyeSpread - 10, eyeY - 12);
+        ctx.lineTo(cx - eyeSpread + 10, eyeY - 14);
+        ctx.stroke();
+
+        // Mouth: wavy "hmm"
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 14, cy + 24);
+        ctx.quadraticCurveTo(cx - 4, cy + 20, cx, cy + 24);
+        ctx.quadraticCurveTo(cx + 4, cy + 28, cx + 14, cy + 22);
         ctx.stroke();
 
       } else if (expression === 'happy') {
-        // Big happy eyes
+        // Big sparkly eyes
+        const er = 11 * es;
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY - 2, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 2, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY - 2, er, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 2, er, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 3.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 3.5, 0, Math.PI * 2); ctx.fill();
-        // Sparkle in eyes
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 5, 0, Math.PI * 2); ctx.fill();
+        // Star sparkles in eyes
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread - 2, eyeY - 3, 1.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread - 2, eyeY - 3, 1.5, 0, Math.PI * 2); ctx.fill();
-        // Big grin
+        for (const ex of [cx - eyeSpread - 3, cx + eyeSpread - 3]) {
+          ctx.beginPath(); ctx.arc(ex, eyeY - 4, 2.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(ex + 4, eyeY - 6, 1.2, 0, Math.PI * 2); ctx.fill();
+        }
+        // Happy eyebrows
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 3;
+        for (const side of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(cx + side * (eyeSpread - 10), eyeY - 18);
+          ctx.quadraticCurveTo(cx + side * eyeSpread, eyeY - 22, cx + side * (eyeSpread + 10), eyeY - 16);
+          ctx.stroke();
+        }
+        // BIG grin
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.arc(cx, cy + 10, 18, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.arc(cx, cy + 14, 24, 0.12 * Math.PI, 0.88 * Math.PI);
         ctx.stroke();
         // Teeth
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.beginPath();
-        ctx.arc(cx, cy + 10, 16, 0.2 * Math.PI, 0.8 * Math.PI);
+        ctx.arc(cx, cy + 14, 21, 0.18 * Math.PI, 0.82 * Math.PI);
         ctx.fill();
         // Rosy cheeks
-        ctx.fillStyle = 'rgba(255,150,150,0.3)';
-        ctx.beginPath(); ctx.arc(cx - 30, cy + 8, 10, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + 30, cy + 8, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,150,150,0.35)';
+        ctx.beginPath(); ctx.arc(cx - 42, cy + 12, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 42, cy + 12, 14, 0, Math.PI * 2); ctx.fill();
 
       } else if (expression === 'sad') {
         // Sad droopy eyes
+        const er = 9 * es;
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 6, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 2, er, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 2, er, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 2, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 2, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 4, 4.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 4, 4.5, 0, Math.PI * 2); ctx.fill();
         // Sad eyebrows
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
-        ctx.moveTo(cx - eyeSpread - 8, eyeY - 9);
-        ctx.quadraticCurveTo(cx - eyeSpread, eyeY - 12, cx - eyeSpread + 8, eyeY - 8);
+        ctx.moveTo(cx - eyeSpread - 12, eyeY - 12);
+        ctx.quadraticCurveTo(cx - eyeSpread, eyeY - 18, cx - eyeSpread + 12, eyeY - 10);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(cx + eyeSpread - 8, eyeY - 8);
-        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 12, cx + eyeSpread + 8, eyeY - 9);
+        ctx.moveTo(cx + eyeSpread - 12, eyeY - 10);
+        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 18, cx + eyeSpread + 12, eyeY - 12);
         ctx.stroke();
-        // Frown
+        // Bigger frown
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.arc(cx, cy + 28, 14, 1.2 * Math.PI, 1.8 * Math.PI);
+        ctx.arc(cx, cy + 40, 18, 1.15 * Math.PI, 1.85 * Math.PI);
         ctx.stroke();
-        // Tear
-        ctx.fillStyle = 'rgba(100,180,255,0.6)';
-        ctx.beginPath(); ctx.ellipse(cx - eyeSpread + 8, eyeY + 14, 3, 5, 0.2, 0, Math.PI * 2); ctx.fill();
+        // Tears (both sides, animated via offset)
+        ctx.fillStyle = 'rgba(100,180,255,0.65)';
+        const tearOff = (Math.sin(performance.now() / 500) + 1) * 3;
+        ctx.beginPath();
+        ctx.ellipse(cx - eyeSpread + 10, eyeY + 18 + tearOff, 4, 7, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + eyeSpread - 10, eyeY + 16 + tearOff * 0.7, 3.5, 6, -0.2, 0, Math.PI * 2);
+        ctx.fill();
 
       } else {
-        // Neutral / default smiley
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 5.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 5.5, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 1, 2.8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 1, 2.8, 0, Math.PI * 2); ctx.fill();
-        // Slight smile
+        // Neutral / default smiley with blink support
+        const eyeH = bl > 0.5 ? Math.max(1, (1 - bl) * 2) : 1; // vertical squash for blink
+        const er = 8.5 * es;
+
+        if (eyeH < 0.15) {
+          // Fully closed: draw lines
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(cx - eyeSpread - er, eyeY);
+          ctx.lineTo(cx - eyeSpread + er, eyeY);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(cx + eyeSpread - er, eyeY);
+          ctx.lineTo(cx + eyeSpread + er, eyeY);
+          ctx.stroke();
+        } else {
+          // Open or partially open eyes
+          ctx.fillStyle = '#fff';
+          ctx.save();
+          ctx.translate(cx - eyeSpread, eyeY);
+          ctx.scale(1, eyeH);
+          ctx.beginPath(); ctx.arc(0, 0, er, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+          ctx.save();
+          ctx.translate(cx + eyeSpread, eyeY);
+          ctx.scale(1, eyeH);
+          ctx.beginPath(); ctx.arc(0, 0, er, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+
+          // Pupils
+          ctx.fillStyle = '#333';
+          ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 1, 4.2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 1, 4.2, 0, Math.PI * 2); ctx.fill();
+          // Eye shine
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(cx - eyeSpread - 2, eyeY - 2, 2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + eyeSpread - 2, eyeY - 2, 2, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Friendly smile
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
-        ctx.arc(cx, cy + 8, 14, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.arc(cx, cy + 12, 18, 0.12 * Math.PI, 0.88 * Math.PI);
         ctx.stroke();
       }
 
       // Bow/ribbon for girl
       if (isGirl) {
         ctx.fillStyle = lightColor;
+        const bx = cx + R * 0.38, by = cy - R * 0.62;
+        // Left wing
         ctx.beginPath();
-        ctx.moveTo(cx + R * 0.35, cy - R * 0.65);
-        ctx.quadraticCurveTo(cx + R * 0.55, cy - R * 0.85, cx + R * 0.65, cy - R * 0.55);
-        ctx.quadraticCurveTo(cx + R * 0.45, cy - R * 0.6, cx + R * 0.35, cy - R * 0.65);
+        ctx.moveTo(bx, by);
+        ctx.quadraticCurveTo(bx - 18, by - 20, bx - 22, by - 2);
+        ctx.quadraticCurveTo(bx - 12, by - 6, bx, by);
         ctx.fill();
+        // Right wing
         ctx.beginPath();
-        ctx.moveTo(cx + R * 0.35, cy - R * 0.65);
-        ctx.quadraticCurveTo(cx + R * 0.15, cy - R * 0.85, cx + R * 0.08, cy - R * 0.55);
-        ctx.quadraticCurveTo(cx + R * 0.25, cy - R * 0.6, cx + R * 0.35, cy - R * 0.65);
+        ctx.moveTo(bx, by);
+        ctx.quadraticCurveTo(bx + 18, by - 20, bx + 22, by - 2);
+        ctx.quadraticCurveTo(bx + 12, by - 6, bx, by);
         ctx.fill();
         // Knot
-        ctx.beginPath();
-        ctx.arc(cx + R * 0.35, cy - R * 0.65, 4, 0, Math.PI * 2);
-        ctx.fillStyle = darkColor;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2);
+        ctx.fillStyle = darkColor; ctx.fill();
       }
 
       ctx.restore();
     }
 
+    // Animated avatar update (called from render loop)
+    let lastAvatarUpdate = 0;
+    function animateAvatars(dt) {
+      for (const p of [P1, P2]) {
+        if (!isAI(p)) continue;
+
+        // Blink timer
+        blinkTimer[p] -= dt;
+        if (blinkTimer[p] <= 0) {
+          blinkState[p] = 1; // start closing
+          blinkTimer[p] = 2.5 + Math.random() * 4;
+        }
+        // Blink animation (close then open over ~0.15s)
+        if (blinkState[p] > 0) {
+          blinkState[p] -= dt * 8; // takes ~0.125s
+          if (blinkState[p] < 0) blinkState[p] = 0;
+        }
+
+        // Subtle eye size pulse
+        eyeScale[p] += eyeScaleDir[p] * dt * 0.3;
+        if (eyeScale[p] > 1.08) { eyeScale[p] = 1.08; eyeScaleDir[p] = -1; }
+        if (eyeScale[p] < 0.94) { eyeScale[p] = 0.94; eyeScaleDir[p] = 1; }
+      }
+
+      // Throttle canvas redraws to ~20fps
+      lastAvatarUpdate += dt;
+      if (lastAvatarUpdate >= 0.05) {
+        lastAvatarUpdate = 0;
+        for (const p of [P1, P2]) {
+          drawFace(`face-p${p + 1}`, p, players[p].expression, isAI(p), blinkState[p]);
+        }
+      }
+    }
+
     function updateAvatars() {
       for (const p of [P1, P2]) {
-        drawFace(`face-p${p + 1}`, p, players[p].expression, isAI(p));
+        drawFace(`face-p${p + 1}`, p, players[p].expression, isAI(p), blinkState[p]);
       }
     }
 
@@ -1345,6 +1507,7 @@
        ================================================================ */
     let board, turn, over, busy, history;
     let thinkingFormulaInterval = null;
+    let sparkleRespawnTimer = 0;
 
     function initGame() {
       board = newBoard();
@@ -1365,6 +1528,7 @@
       confettiParticles = [];
       confettiActive = false;
       confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      sparkleRespawnTimer = 0;
 
       // Reset expressions
       players[P1].expression = 'neutral';
@@ -1407,7 +1571,7 @@
       updateAvatars();
       const pIdx = player + 1;
       document.getElementById(`think-p${pIdx}`).classList.add('show');
-      document.getElementById(`dots-p${pIdx}`).classList.add('show');
+      document.getElementById(`trail-p${pIdx}`).classList.add('show');
 
       // Cycle formulas
       let fi = Math.floor(Math.random() * THINK_FORMULAS.length);
@@ -1416,7 +1580,7 @@
       thinkingFormulaInterval = setInterval(() => {
         fi = (fi + 1) % THINK_FORMULAS.length;
         el.textContent = THINK_FORMULAS[fi];
-      }, 600);
+      }, 700);
     }
 
     function stopThinking() {
@@ -1426,7 +1590,7 @@
       }
       for (const pIdx of [1, 2]) {
         document.getElementById(`think-p${pIdx}`).classList.remove('show');
-        document.getElementById(`dots-p${pIdx}`).classList.remove('show');
+        document.getElementById(`trail-p${pIdx}`).classList.remove('show');
       }
     }
 
@@ -1726,7 +1890,7 @@
           aiRow.style.display = 'flex';
           nameEl.textContent = players[p].name;
           document.getElementById(`ai-level-p${pIdx}`).value = players[p].aiLevel;
-          document.getElementById(`ai-level-val-p${pIdx}`).textContent = players[p].aiLevel;
+          document.getElementById(`ai-level-name-p${pIdx}`).textContent = levelName(players[p].aiLevel);
         }
       }
       updateAvatars();
@@ -1776,10 +1940,10 @@
     for (const p of [P1, P2]) {
       const pIdx = p + 1;
       const slider = document.getElementById(`ai-level-p${pIdx}`);
-      const valEl = document.getElementById(`ai-level-val-p${pIdx}`);
+      const nameEl = document.getElementById(`ai-level-name-p${pIdx}`);
       slider.addEventListener('input', () => {
         players[p].aiLevel = parseInt(slider.value);
-        valEl.textContent = slider.value;
+        nameEl.textContent = levelName(players[p].aiLevel);
       });
     }
 
@@ -1821,11 +1985,25 @@
       clock += dt;
       controls.update();
 
+      // Animate AI avatars (blink, eye pulse)
+      animateAvatars(dt);
+
       // Pulse winning chips
       for (const e of chipMeshes) {
         if (e.winner) {
-          const intensity = 0.25 + 0.30 * Math.sin(clock * 4.5);
+          const intensity = 0.25 + 0.35 * Math.sin(clock * 4.5);
           for (const m of e.mats) m.emissiveIntensity = intensity;
+        }
+      }
+
+      // Continuously respawn sparkles on winning chips
+      if (over) {
+        sparkleRespawnTimer += dt;
+        if (sparkleRespawnTimer > 0.6) {
+          sparkleRespawnTimer = 0;
+          for (const e of chipMeshes) {
+            if (e.winner) spawnSparkles(e.col, e.row);
+          }
         }
       }
 
