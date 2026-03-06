@@ -134,6 +134,22 @@
       display: flex;
     }
 
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 30;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    #settings-overlay.show {
+      display: flex;
+    }
+
     #modal {
       background: rgba(22, 27, 46, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -142,6 +158,55 @@
       text-align: center;
       color: #fff;
       box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8);
+    }
+
+    #settings-modal {
+      background: rgba(22, 27, 46, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 56px 72px;
+      text-align: left;
+      color: #fff;
+      box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8);
+      min-width: 400px;
+    }
+
+    #settings-modal h2 {
+      font-size: 2.2em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #settings-modal label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: 600;
+    }
+
+    #settings-modal select, #settings-modal input[type="range"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 1em;
+    }
+
+    #settings-modal .range-value {
+      display: inline-block;
+      margin-left: 10px;
+      font-weight: bold;
+    }
+
+    #settings-modal .buttons {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    #settings-modal .buttons button {
+      margin: 0 10px;
+      padding: 12px 24px;
     }
 
     #modal h2 {
@@ -204,6 +269,23 @@
         padding: 12px 32px;
         font-size: 0.95em;
       }
+      #settings-modal {
+        padding: 32px 40px;
+        margin: 16px;
+        min-width: unset;
+      }
+      #settings-modal h2 {
+        font-size: 2em;
+      }
+      #settings-modal label {
+        margin: 10px 0 5px;
+      }
+      #settings-modal select, #settings-modal input[type="range"] {
+        padding: 8px;
+      }
+      #settings-modal .buttons button {
+        padding: 10px 20px;
+      }
     }
 
     /* Extra small screens */
@@ -223,6 +305,23 @@
         padding: 5px 10px;
         font-size: 0.8em;
       }
+      #settings-modal {
+        padding: 20px 24px;
+        min-width: unset;
+      }
+      #settings-modal h2 {
+        font-size: 1.8em;
+      }
+      #settings-modal label {
+        margin: 8px 0 4px;
+      }
+      #settings-modal select, #settings-modal input[type="range"] {
+        padding: 6px;
+      }
+      #settings-modal .buttons button {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
     }
   </style>
 </head>
@@ -237,6 +336,7 @@
     <div class="btns">
       <button id="btn-undo" aria-label="Undo last move">Undo</button>
       <button id="btn-new" aria-label="Start new game">New Game</button>
+      <button id="btn-settings" aria-label="Game settings">Settings</button>
     </div>
   </div>
 
@@ -255,6 +355,24 @@
       <h2 id="mtitle">Game Over</h2>
       <p id="mmsg"></p>
       <button id="btn-again" aria-label="Play again">Play Again</button>
+    </div>
+  </div>
+
+  <div id="settings-overlay">
+    <div id="settings-modal">
+      <h2>Game Settings</h2>
+      <label for="game-mode">Game Mode</label>
+      <select id="game-mode">
+        <option value="human-vs-human">Human vs Human</option>
+        <option value="human-vs-ai" selected>Human vs AI</option>
+        <option value="ai-vs-ai">AI vs AI</option>
+      </select>
+      <label for="ai-level">AI Difficulty Level: <span id="ai-level-value">6</span></label>
+      <input type="range" id="ai-level" min="1" max="10" value="6">
+      <div class="buttons">
+        <button id="btn-settings-apply">Apply & Start New Game</button>
+        <button id="btn-settings-cancel">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -277,7 +395,19 @@
        ================================================================ */
     const ROWS = 6, COLS = 7;
     const EMPTY = 2, P1 = 0, P2 = 1;
-    const AI_DEPTH = 6;
+    let aiDepth = 6;
+    let gameMode = 'human-vs-ai'; // 'human-vs-human', 'human-vs-ai', 'ai-vs-ai'
+
+    function isHuman(player) {
+      if (gameMode === 'human-vs-human') return true;
+      if (gameMode === 'human-vs-ai') return player === P1;
+      if (gameMode === 'ai-vs-ai') return false;
+      return false;
+    }
+
+    function isAI(player) {
+      return !isHuman(player);
+    }
 
     /* ================================================================
        BOARD LOGIC (direct port from connect-four-game.c)
@@ -361,7 +491,7 @@
         if (colHeight(bc, c) >= ROWS) continue;
         const row = insert(bc, c, P2);
         const val = isWin(bc, c, row) ? evalBoard(bc)
-          : minimax(bc, AI_DEPTH - 1, -Infinity, Infinity, P1);
+          : minimax(bc, aiDepth - 1, -Infinity, Infinity, P1);
         remove(bc, c);
         if (val < best) { best = val; col = c; }
       }
@@ -886,6 +1016,35 @@
         sparkles.remove(sparkles.children[i]);
       document.getElementById('overlay').classList.remove('show');
       updateHUD();
+      // If current player is AI, start AI move
+      if (isAI(turn)) {
+        busy = true;
+        setTimeout(() => {
+          const aiCol = aiPickCol(board);
+          dropChip(aiCol, turn, (c, r) => afterDrop(c, r, turn));
+        }, 300);
+      }
+    }
+
+    function showSettingsOverlay() {
+      document.getElementById('settings-overlay').classList.add('show');
+    }
+
+    function hideSettingsOverlay() {
+      document.getElementById('settings-overlay').classList.remove('show');
+    }
+
+    function applySettings() {
+      const modeSelect = document.getElementById('game-mode');
+      gameMode = modeSelect.value;
+      aiDepth = parseInt(document.getElementById('ai-level').value);
+      hideSettingsOverlay();
+      initGame();
+    }
+
+    function updateLevelValue() {
+      const level = document.getElementById('ai-level').value;
+      document.getElementById('ai-level-value').textContent = level;
     }
 
     function updateHUD() {
@@ -894,11 +1053,15 @@
       if (turn === P1) {
         dot.style.background = '#d4213d';
         dot.style.color = '#d4213d';
-        text.textContent = 'Your turn (Red)';
+        if (gameMode === 'human-vs-human') text.textContent = 'Red\'s turn';
+        else if (gameMode === 'human-vs-ai') text.textContent = 'Your turn (Red)';
+        else text.textContent = 'AI Red thinking...';
       } else {
         dot.style.background = '#f5c400';
         dot.style.color = '#f5c400';
-        text.textContent = 'AI is thinking\u2026';
+        if (gameMode === 'human-vs-human') text.textContent = 'Yellow\'s turn';
+        else if (gameMode === 'human-vs-ai') text.textContent = 'AI is thinking...';
+        else text.textContent = 'AI Yellow thinking...';
       }
     }
 
@@ -1004,8 +1167,15 @@
 
       if (isWin(board, col, row)) {
         markWinners(col, row);
-        if (player === P1) showOver('You Win!', 'Red wins \u2014 well played!');
-        else showOver('AI Wins!', 'Yellow wins this round.');
+        if (player === P1) {
+          if (gameMode === 'human-vs-human') showOver('Red Wins!', 'Red wins the game!');
+          else if (gameMode === 'human-vs-ai') showOver('You Win!', 'Red wins \u2014 well played!');
+          else showOver('AI Red Wins!', 'Red AI wins the game!');
+        } else {
+          if (gameMode === 'human-vs-human') showOver('Yellow Wins!', 'Yellow wins the game!');
+          else if (gameMode === 'human-vs-ai') showOver('AI Wins!', 'Yellow wins this round.');
+          else showOver('AI Yellow Wins!', 'Yellow AI wins the game!');
+        }
         busy = false;
         return;
       }
@@ -1015,29 +1185,31 @@
         return;
       }
 
-      if (player === P1) {
-        turn = P2;
-        updateHUD();
+      // switch turn
+      turn = turn === P1 ? P2 : P1;
+      updateHUD();
+
+      if (isAI(turn)) {
+        // AI move after a short delay
         setTimeout(() => {
           const aiCol = aiPickCol(board);
-          dropChip(aiCol, P2, (c, r) => afterDrop(c, r, P2));
+          dropChip(aiCol, turn, (c, r) => afterDrop(c, r, turn));
         }, 300);
       } else {
-        turn = P1;
-        updateHUD();
+        // human's turn, enable interaction
         busy = false;
       }
     }
 
     function playerDrop(col) {
-      if (over || busy || turn !== P1) return;
+      if (over || busy || !isHuman(turn)) return;
       if (col < 0 || col >= COLS) return;
       if (colHeight(board, col) >= ROWS) return;
 
       busy = true;
       ghostMesh.visible = false;
       colHL.forEach(h => h.material.opacity = 0);
-      dropChip(col, P1, (c, r) => afterDrop(c, r, P1));
+      dropChip(col, turn, (c, r) => afterDrop(c, r, turn));
     }
 
     /* ================================================================
@@ -1126,6 +1298,16 @@
     document.getElementById('btn-undo').addEventListener('click', doUndo);
     document.getElementById('btn-new').addEventListener('click', initGame);
     document.getElementById('btn-again').addEventListener('click', initGame);
+
+    // Settings button
+    document.getElementById('btn-settings').addEventListener('click', showSettingsOverlay);
+    document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
+    document.getElementById('btn-settings-cancel').addEventListener('click', hideSettingsOverlay);
+    const aiLevelSlider = document.getElementById('ai-level');
+    aiLevelSlider.addEventListener('input', updateLevelValue);
+    // Initialize level display and select
+    updateLevelValue();
+    document.getElementById('game-mode').value = gameMode;
 
     // Column buttons for mobile/touch
     const colButtons = document.getElementById('column-buttons');
