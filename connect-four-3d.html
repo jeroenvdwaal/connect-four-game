@@ -338,6 +338,60 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
 
+    /* ── Lobby / settings-lock ── */
+    .player-panel.locked .panel-type-toggle,
+    .player-panel.locked .panel-settings {
+      opacity: 0.32;
+      pointer-events: none;
+      filter: grayscale(0.5);
+      transition: opacity 0.4s, filter 0.4s;
+    }
+    .lock-badge {
+      font-size: 0.95em;
+      opacity: 0.55;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    #play-btn {
+      position: fixed;
+      bottom: 44px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      font-family: 'Bungee Shade', 'Bangers', cursive;
+      font-size: 2em;
+      letter-spacing: 4px;
+      padding: 16px 56px;
+      border-radius: 20px;
+      border: 3px solid rgba(255,255,255,0.35);
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(212,33,61,0.85), rgba(30,20,60,0.9), rgba(200,160,0,0.85));
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 40px rgba(212,33,61,0.3);
+      transition: all 0.25s;
+      backdrop-filter: blur(8px);
+      animation: playPulse 2s ease-in-out infinite;
+    }
+    #play-btn:hover {
+      transform: translateX(-50%) scale(1.07);
+      box-shadow: 0 12px 44px rgba(0,0,0,0.6), 0 0 60px rgba(245,196,0,0.4);
+    }
+    #play-btn.hidden { display: none; }
+
+    @keyframes playPulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 30px rgba(212,33,61,0.25); }
+      50% { box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 55px rgba(245,196,0,0.45); }
+    }
+
+    #lobby-status {
+      font-family: 'Permanent Marker', cursive;
+      font-size: 0.9em;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
     /* ── Game Over overlay ── */
     #game-over-overlay {
       display: none;
@@ -523,12 +577,15 @@
       <div class="dot" id="pdot" style="background:#d4213d; color:#d4213d"></div>
       <span id="stxt">Red's turn</span>
     </div>
+    <span id="lobby-status">Choose your players, then press Play!</span>
   </div>
 
   <div class="hud-btns">
     <button class="hud-btn" id="btn-undo" aria-label="Undo last move">Undo</button>
-    <button class="hud-btn" id="btn-new" aria-label="Start new game">New</button>
+    <button class="hud-btn" id="btn-new" aria-label="Change settings">Settings</button>
   </div>
+
+  <button id="play-btn" aria-label="Start game">PLAY!</button>
 
   <!-- Player 1 panel (Red, left) -->
   <div class="player-panel p1" id="panel-p1">
@@ -612,7 +669,7 @@
     <div id="game-over-banner">
       <div class="winner-title" id="winner-title">Red Wins!</div>
       <div class="winner-sub" id="winner-sub">Great game!</div>
-      <button class="restart-btn" id="btn-restart">Play Again</button>
+      <button class="restart-btn" id="btn-restart">Play Again!</button>
     </div>
   </div>
 
@@ -640,16 +697,38 @@
        AI PERSONAS
        ================================================================ */
     const AI_PERSONAS = [
-      { name: 'Luna', gender: 'girl' },
-      { name: 'Max', gender: 'boy' },
-      { name: 'Zoe', gender: 'girl' },
-      { name: 'Rex', gender: 'boy' },
-      { name: 'Ivy', gender: 'girl' },
-      { name: 'Finn', gender: 'boy' },
-      { name: 'Mia', gender: 'girl' },
-      { name: 'Leo', gender: 'boy' },
-      { name: 'Nova', gender: 'girl' },
-      { name: 'Axel', gender: 'boy' },
+      // Girls
+      { name: 'Luna',   gender: 'girl' },
+      { name: 'Zoe',    gender: 'girl' },
+      { name: 'Ivy',    gender: 'girl' },
+      { name: 'Mia',    gender: 'girl' },
+      { name: 'Nova',   gender: 'girl' },
+      { name: 'Ella',   gender: 'girl' },
+      { name: 'Aria',   gender: 'girl' },
+      { name: 'Cleo',   gender: 'girl' },
+      { name: 'Pippa',  gender: 'girl' },
+      { name: 'Skye',   gender: 'girl' },
+      { name: 'Wren',   gender: 'girl' },
+      { name: 'Lyra',   gender: 'girl' },
+      { name: 'Tessa',  gender: 'girl' },
+      { name: 'Nora',   gender: 'girl' },
+      { name: 'Ruby',   gender: 'girl' },
+      // Boys
+      { name: 'Max',    gender: 'boy' },
+      { name: 'Rex',    gender: 'boy' },
+      { name: 'Finn',   gender: 'boy' },
+      { name: 'Leo',    gender: 'boy' },
+      { name: 'Axel',   gender: 'boy' },
+      { name: 'Kai',    gender: 'boy' },
+      { name: 'Zack',   gender: 'boy' },
+      { name: 'Theo',   gender: 'boy' },
+      { name: 'Dash',   gender: 'boy' },
+      { name: 'Bram',   gender: 'boy' },
+      { name: 'Cruz',   gender: 'boy' },
+      { name: 'Otto',   gender: 'boy' },
+      { name: 'Hugo',   gender: 'boy' },
+      { name: 'Remy',   gender: 'boy' },
+      { name: 'Nico',   gender: 'boy' },
     ];
 
     const THINK_FORMULAS = [
@@ -1139,259 +1218,223 @@
       ctx.clearRect(0, 0, S, S);
 
       const baseColor = player === P1 ? '#d4213d' : '#f5c400';
-      const darkColor = player === P1 ? '#a01a30' : '#c09e00';
-      const lightColor = player === P1 ? '#ff6b81' : '#ffe082';
+      const darkColor = player === P1 ? '#880d22' : '#9a7800';
+      const lightColor = player === P1 ? '#ff8fa0' : '#ffe57a';
 
-      // Chip body
-      const alpha = isAiPlayer ? 0.85 : 0.5;
+      // ── Chip body ──
+      const alpha = isAiPlayer ? 0.92 : 0.5;
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.fillStyle = baseColor;
-      ctx.globalAlpha = alpha;
-      ctx.fill();
-
-      // Sheen
-      const grad = ctx.createRadialGradient(cx - 20, cy - 28, 14, cx, cy, R);
-      grad.addColorStop(0, 'rgba(255,255,255,0.35)');
-      grad.addColorStop(0.4, 'rgba(255,255,255,0.05)');
-      grad.addColorStop(1, 'rgba(0,0,0,0.18)');
-      ctx.fillStyle = grad;
-      ctx.globalAlpha = 1;
-      ctx.fill();
-
-      // Rim
-      ctx.beginPath();
-      ctx.arc(cx, cy, R - 3, 0, Math.PI * 2);
-      ctx.strokeStyle = darkColor;
-      ctx.lineWidth = 4;
-      ctx.globalAlpha = 0.5;
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = baseColor; ctx.globalAlpha = alpha; ctx.fill();
+      const grad = ctx.createRadialGradient(cx - 28, cy - 38, 10, cx, cy, R);
+      grad.addColorStop(0, 'rgba(255,255,255,0.48)');
+      grad.addColorStop(0.4, 'rgba(255,255,255,0.06)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.25)');
+      ctx.fillStyle = grad; ctx.globalAlpha = 1; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, R - 2, 0, Math.PI * 2);
+      ctx.strokeStyle = darkColor; ctx.lineWidth = 7; ctx.globalAlpha = 0.6; ctx.stroke();
       ctx.restore();
 
       if (!isAiPlayer) {
-        // Human: person silhouette
-        ctx.save();
-        ctx.globalAlpha = 0.75;
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx, cy - 16, 24, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy + 38, 34, Math.PI * 1.08, Math.PI * 1.92, false); ctx.fill();
+        // Human silhouette
+        ctx.save(); ctx.globalAlpha = 0.82; ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx, cy - 22, 32, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy + 48, 44, Math.PI * 1.12, Math.PI * 1.88, false); ctx.fill();
         ctx.restore();
         return;
       }
 
-      // AI face - all sizes scaled for 256px canvas
-      ctx.save();
-      ctx.globalAlpha = 1;
+      // ── AI face ──
+      ctx.save(); ctx.globalAlpha = 1; ctx.lineCap = 'round';
 
       const persona = players[player].aiPersona;
       const isGirl = persona && persona.gender === 'girl';
-      const bl = blink || 0; // 0=open, 1=fully closed
+      const bl = blink || 0;
 
-      // Hair for girl personas
+      // Girl hair — top tuft only (no ear-like side protrusions)
       if (isGirl) {
         ctx.fillStyle = darkColor;
         ctx.beginPath();
-        ctx.ellipse(cx - R * 0.55, cy - R * 0.15, 20, 38, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy - R * 0.80, 54, 30, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.ellipse(cx + R * 0.55, cy - R * 0.15, 20, 38, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(cx - R * 0.38, cy - R * 0.70, 13, 18, -0.25, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.ellipse(cx, cy - R * 0.68, 40, 20, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx + R * 0.38, cy - R * 0.70, 13, 18, 0.25, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Eye positions and sizes (scaled up)
-      const eyeY = cy - 10;
-      const eyeSpread = 30;
-      const es = eyeScale[player]; // subtle size pulse
+      // ── Eyes — very large ──
+      const eyeY = cy - 22;
+      const eyeSpread = 52;
+      const es = eyeScale[player];
 
       if (expression === 'thinking') {
-        // LEFT EYE: squinting
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
+        // LEFT: thick squint line
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 9;
         ctx.beginPath();
-        ctx.moveTo(cx - eyeSpread - 12, eyeY);
-        ctx.quadraticCurveTo(cx - eyeSpread, eyeY + 5, cx - eyeSpread + 12, eyeY);
+        ctx.moveTo(cx - eyeSpread - 24, eyeY + 2);
+        ctx.quadraticCurveTo(cx - eyeSpread, eyeY + 16, cx - eyeSpread + 24, eyeY + 2);
+        ctx.stroke();
+        // left brow pushed down / furrowed
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(cx - eyeSpread - 22, eyeY - 14);
+        ctx.lineTo(cx - eyeSpread + 20, eyeY - 7);
         ctx.stroke();
 
-        // RIGHT EYE: open, looking up-right
-        const reR = 9 * es;
+        // RIGHT: wide-open looking up
+        const reR = 24 * es;
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 2, reR, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(cx + eyeSpread + 2, eyeY - 3, 4.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, reR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#111';
+        ctx.beginPath(); ctx.arc(cx + eyeSpread + 5, eyeY - 6, 11, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 5, 2, 0, Math.PI * 2); ctx.fill();
-
-        // Raised right eyebrow
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(cx + eyeSpread + 1, eyeY - 12, 4.5, 0, Math.PI * 2); ctx.fill();
+        // Raised right brow
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 7;
         ctx.beginPath();
-        ctx.moveTo(cx + eyeSpread - 12, eyeY - 16);
-        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 22, cx + eyeSpread + 12, eyeY - 14);
-        ctx.stroke();
-        // Left eyebrow (flat, concentrated)
-        ctx.beginPath();
-        ctx.moveTo(cx - eyeSpread - 10, eyeY - 12);
-        ctx.lineTo(cx - eyeSpread + 10, eyeY - 14);
+        ctx.moveTo(cx + eyeSpread - 22, eyeY - 32);
+        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 48, cx + eyeSpread + 22, eyeY - 30);
         ctx.stroke();
 
-        // Mouth: wavy "hmm"
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3.5;
+        // Wavy "hmm" mouth
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 8;
         ctx.beginPath();
-        ctx.moveTo(cx - 14, cy + 24);
-        ctx.quadraticCurveTo(cx - 4, cy + 20, cx, cy + 24);
-        ctx.quadraticCurveTo(cx + 4, cy + 28, cx + 14, cy + 22);
+        ctx.moveTo(cx - 30, cy + 32);
+        ctx.quadraticCurveTo(cx - 8, cy + 18, cx + 2, cy + 32);
+        ctx.quadraticCurveTo(cx + 16, cy + 46, cx + 30, cy + 28);
         ctx.stroke();
 
       } else if (expression === 'happy') {
-        // Big sparkly eyes
-        const er = 11 * es;
+        const er = 26 * es;
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY - 2, er, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY - 2, er, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, 5, 0, Math.PI * 2); ctx.fill();
-        // Star sparkles in eyes
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, er, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, er, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#111';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 4, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 4, 12, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#fff';
-        for (const ex of [cx - eyeSpread - 3, cx + eyeSpread - 3]) {
-          ctx.beginPath(); ctx.arc(ex, eyeY - 4, 2.5, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(ex + 4, eyeY - 6, 1.2, 0, Math.PI * 2); ctx.fill();
+        for (const ex of [cx - eyeSpread - 7, cx + eyeSpread - 7]) {
+          ctx.beginPath(); ctx.arc(ex, eyeY - 9, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(ex + 9, eyeY - 14, 3, 0, Math.PI * 2); ctx.fill();
         }
-        // Happy eyebrows
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        // Happy arched brows
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 7;
         for (const side of [-1, 1]) {
           ctx.beginPath();
-          ctx.moveTo(cx + side * (eyeSpread - 10), eyeY - 18);
-          ctx.quadraticCurveTo(cx + side * eyeSpread, eyeY - 22, cx + side * (eyeSpread + 10), eyeY - 16);
+          ctx.moveTo(cx + side * (eyeSpread - 20), eyeY - 34);
+          ctx.quadraticCurveTo(cx + side * eyeSpread, eyeY - 48, cx + side * (eyeSpread + 20), eyeY - 32);
           ctx.stroke();
         }
-        // BIG grin
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 4;
+        // HUGE grin
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 9;
         ctx.beginPath();
-        ctx.arc(cx, cy + 14, 24, 0.12 * Math.PI, 0.88 * Math.PI);
+        ctx.arc(cx, cy + 24, 44, 0.1 * Math.PI, 0.9 * Math.PI);
         ctx.stroke();
-        // Teeth
         ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.beginPath();
-        ctx.arc(cx, cy + 14, 21, 0.18 * Math.PI, 0.82 * Math.PI);
+        ctx.arc(cx, cy + 24, 39, 0.12 * Math.PI, 0.88 * Math.PI);
         ctx.fill();
         // Rosy cheeks
-        ctx.fillStyle = 'rgba(255,150,150,0.35)';
-        ctx.beginPath(); ctx.arc(cx - 42, cy + 12, 14, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + 42, cy + 12, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,100,100,0.32)';
+        ctx.beginPath(); ctx.arc(cx - 68, cy + 22, 22, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 68, cy + 22, 22, 0, Math.PI * 2); ctx.fill();
 
       } else if (expression === 'sad') {
-        // Sad droopy eyes
-        const er = 9 * es;
+        const er = 24 * es;
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 2, er, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 2, er, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 4, 4.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 4, 4.5, 0, Math.PI * 2); ctx.fill();
-        // Sad eyebrows
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 4, er, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 4, er, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#111';
+        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 8, 11, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 8, 11, 0, Math.PI * 2); ctx.fill();
+        // Sad brows (inner corners raised)
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 7;
         ctx.beginPath();
-        ctx.moveTo(cx - eyeSpread - 12, eyeY - 12);
-        ctx.quadraticCurveTo(cx - eyeSpread, eyeY - 18, cx - eyeSpread + 12, eyeY - 10);
+        ctx.moveTo(cx - eyeSpread - 20, eyeY - 16);
+        ctx.quadraticCurveTo(cx - eyeSpread, eyeY - 32, cx - eyeSpread + 20, eyeY - 10);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(cx + eyeSpread - 12, eyeY - 10);
-        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 18, cx + eyeSpread + 12, eyeY - 12);
+        ctx.moveTo(cx + eyeSpread - 20, eyeY - 10);
+        ctx.quadraticCurveTo(cx + eyeSpread, eyeY - 32, cx + eyeSpread + 20, eyeY - 16);
         ctx.stroke();
-        // Bigger frown
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 4;
+        // Big frown
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 9;
         ctx.beginPath();
-        ctx.arc(cx, cy + 40, 18, 1.15 * Math.PI, 1.85 * Math.PI);
+        ctx.arc(cx, cy + 60, 36, 1.1 * Math.PI, 1.9 * Math.PI);
         ctx.stroke();
-        // Tears (both sides, animated via offset)
-        ctx.fillStyle = 'rgba(100,180,255,0.65)';
-        const tearOff = (Math.sin(performance.now() / 500) + 1) * 3;
+        // Tears
+        ctx.fillStyle = 'rgba(100,190,255,0.85)';
+        const tearOff = (Math.sin(performance.now() / 450) + 1) * 5;
         ctx.beginPath();
-        ctx.ellipse(cx - eyeSpread + 10, eyeY + 18 + tearOff, 4, 7, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(cx - eyeSpread + 16, eyeY + 30 + tearOff, 7, 13, 0.15, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.ellipse(cx + eyeSpread - 10, eyeY + 16 + tearOff * 0.7, 3.5, 6, -0.2, 0, Math.PI * 2);
+        ctx.ellipse(cx + eyeSpread - 16, eyeY + 28 + tearOff * 0.8, 6, 12, -0.15, 0, Math.PI * 2);
         ctx.fill();
 
       } else {
-        // Neutral / default smiley with blink support
-        const eyeH = bl > 0.5 ? Math.max(1, (1 - bl) * 2) : 1; // vertical squash for blink
-        const er = 8.5 * es;
+        // Neutral — blink-capable
+        const eyeH = bl > 0.4 ? Math.max(0.05, (1 - bl) * 1.7) : 1;
+        const er = 24 * es;
 
-        if (eyeH < 0.15) {
-          // Fully closed: draw lines
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 3;
-          ctx.lineCap = 'round';
+        if (eyeH < 0.12) {
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 8;
           ctx.beginPath();
           ctx.moveTo(cx - eyeSpread - er, eyeY);
-          ctx.lineTo(cx - eyeSpread + er, eyeY);
+          ctx.quadraticCurveTo(cx - eyeSpread, eyeY + 10, cx - eyeSpread + er, eyeY);
           ctx.stroke();
           ctx.beginPath();
           ctx.moveTo(cx + eyeSpread - er, eyeY);
-          ctx.lineTo(cx + eyeSpread + er, eyeY);
+          ctx.quadraticCurveTo(cx + eyeSpread, eyeY + 10, cx + eyeSpread + er, eyeY);
           ctx.stroke();
         } else {
-          // Open or partially open eyes
           ctx.fillStyle = '#fff';
           ctx.save();
-          ctx.translate(cx - eyeSpread, eyeY);
-          ctx.scale(1, eyeH);
+          ctx.translate(cx - eyeSpread, eyeY); ctx.scale(1, eyeH);
           ctx.beginPath(); ctx.arc(0, 0, er, 0, Math.PI * 2); ctx.fill();
           ctx.restore();
           ctx.save();
-          ctx.translate(cx + eyeSpread, eyeY);
-          ctx.scale(1, eyeH);
+          ctx.translate(cx + eyeSpread, eyeY); ctx.scale(1, eyeH);
           ctx.beginPath(); ctx.arc(0, 0, er, 0, Math.PI * 2); ctx.fill();
           ctx.restore();
-
-          // Pupils
-          ctx.fillStyle = '#333';
-          ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 1, 4.2, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 1, 4.2, 0, Math.PI * 2); ctx.fill();
-          // Eye shine
+          ctx.fillStyle = '#111';
+          ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY + 3, 11, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY + 3, 11, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#fff';
-          ctx.beginPath(); ctx.arc(cx - eyeSpread - 2, eyeY - 2, 2, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(cx + eyeSpread - 2, eyeY - 2, 2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx - eyeSpread - 5, eyeY - 6, 4.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + eyeSpread - 5, eyeY - 6, 4.5, 0, Math.PI * 2); ctx.fill();
         }
-
-        // Friendly smile
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 7;
+        for (const side of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(cx + side * (eyeSpread - 18), eyeY - 32);
+          ctx.quadraticCurveTo(cx + side * eyeSpread, eyeY - 40, cx + side * (eyeSpread + 18), eyeY - 30);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 8;
         ctx.beginPath();
-        ctx.arc(cx, cy + 12, 18, 0.12 * Math.PI, 0.88 * Math.PI);
+        ctx.arc(cx, cy + 20, 36, 0.12 * Math.PI, 0.88 * Math.PI);
         ctx.stroke();
       }
 
-      // Bow/ribbon for girl
+      // ── Girl bow (top of head) ──
       if (isGirl) {
+        const bx = cx + R * 0.30, by = cy - R * 0.78;
         ctx.fillStyle = lightColor;
-        const bx = cx + R * 0.38, by = cy - R * 0.62;
-        // Left wing
         ctx.beginPath();
         ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(bx - 18, by - 20, bx - 22, by - 2);
-        ctx.quadraticCurveTo(bx - 12, by - 6, bx, by);
+        ctx.quadraticCurveTo(bx - 26, by - 30, bx - 32, by - 4);
+        ctx.quadraticCurveTo(bx - 14, by - 8, bx, by);
         ctx.fill();
-        // Right wing
         ctx.beginPath();
         ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(bx + 18, by - 20, bx + 22, by - 2);
-        ctx.quadraticCurveTo(bx + 12, by - 6, bx, by);
+        ctx.quadraticCurveTo(bx + 26, by - 30, bx + 32, by - 4);
+        ctx.quadraticCurveTo(bx + 14, by - 8, bx, by);
         ctx.fill();
-        // Knot
-        ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2);
         ctx.fillStyle = darkColor; ctx.fill();
       }
 
@@ -1508,21 +1551,42 @@
     let board, turn, over, busy, history;
     let thinkingFormulaInterval = null;
     let sparkleRespawnTimer = 0;
+    let gameStarted = false;  // false = lobby, true = playing
 
-    function initGame() {
-      board = newBoard();
-      turn = P1;
+    /* ── Settings lock ── */
+    function lockSettings() {
+      for (const p of [P1, P2]) {
+        document.getElementById(`panel-p${p + 1}`).classList.add('locked');
+      }
+      document.getElementById('play-btn').classList.add('hidden');
+      document.getElementById('status').style.display = 'flex';
+      document.getElementById('lobby-status').style.display = 'none';
+    }
+
+    function unlockSettings() {
+      for (const p of [P1, P2]) {
+        document.getElementById(`panel-p${p + 1}`).classList.remove('locked');
+      }
+      document.getElementById('play-btn').classList.remove('hidden');
+      document.getElementById('status').style.display = 'none';
+      document.getElementById('lobby-status').style.display = 'inline';
+    }
+
+    /* ── Lobby (settings phase) ── */
+    function setupLobby() {
+      gameStarted = false;
       over = false;
       busy = false;
-      history = [];
+      stopThinking();
+
+      // Clear board visuals
       for (const { group } of chipMeshes) scene.remove(group);
       chipMeshes.length = 0;
       colHL.forEach(h => h.material.opacity = 0);
       ghostMesh.visible = false;
-      for (let i = sparkles.children.length - 1; i >= 0; i--)
-        sparkles.remove(sparkles.children[i]);
+      clearWinRings();
 
-      // Reset game over UI
+      // Hide game-over UI and confetti
       document.getElementById('game-over-overlay').classList.remove('show');
       document.getElementById('game-over-banner').classList.remove('show');
       confettiParticles = [];
@@ -1530,12 +1594,42 @@
       confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
       sparkleRespawnTimer = 0;
 
-      // Reset expressions
+      players[P1].expression = 'neutral';
+      players[P2].expression = 'neutral';
+      updateAvatars();
+      updatePanels();
+      unlockSettings();
+    }
+
+    /* ── Start game ── */
+    function startGame() {
+      gameStarted = true;
+      board = newBoard();
+      turn = P1;
+      over = false;
+      busy = false;
+      history = [];
+
+      // Clear any leftover visuals from lobby
+      for (const { group } of chipMeshes) scene.remove(group);
+      chipMeshes.length = 0;
+      colHL.forEach(h => h.material.opacity = 0);
+      ghostMesh.visible = false;
+      clearWinRings();
+
+      document.getElementById('game-over-overlay').classList.remove('show');
+      document.getElementById('game-over-banner').classList.remove('show');
+      confettiParticles = [];
+      confettiActive = false;
+      confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      sparkleRespawnTimer = 0;
+
       players[P1].expression = 'neutral';
       players[P2].expression = 'neutral';
       stopThinking();
       updateAvatars();
       updatePanels();
+      lockSettings();
       updateHUD();
 
       if (isAI(turn)) {
@@ -1558,9 +1652,9 @@
         text.textContent = `${name}'s turn`;
       }
 
-      // Active turn glow on panels
-      document.getElementById('panel-p1').classList.toggle('active-turn', turn === P1 && !over);
-      document.getElementById('panel-p2').classList.toggle('active-turn', turn === P2 && !over);
+      // Active turn glow on panels (only while game is running)
+      document.getElementById('panel-p1').classList.toggle('active-turn', gameStarted && turn === P1 && !over);
+      document.getElementById('panel-p2').classList.toggle('active-turn', gameStarted && turn === P2 && !over);
     }
 
     /* ================================================================
@@ -1684,7 +1778,7 @@
 
       group.position.set(colX(col), y, 0);
       scene.add(group);
-      chipMeshes.push({ group, mats, col, row });
+      chipMeshes.push({ group, mats, col, row, player });
 
       function tick() {
         vy += GRAVITY;
@@ -1704,24 +1798,31 @@
       requestAnimationFrame(tick);
     }
 
-    /* ── Win sparkles ── */
-    const sparkles = new THREE.Group();
-    scene.add(sparkles);
-    const sparkGeo = new THREE.SphereGeometry(0.04, 6, 4);
-    const sparkMatA = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const sparkMatB = new THREE.MeshBasicMaterial({ color: 0xffee88 });
+    /* ── Win sonar rings ── */
+    const winRings = [];
+    const RING_COLORS = [0xff4466, 0xffdd00];  // P1 red, P2 yellow
 
-    function spawnSparkles(col, row) {
-      const wx = colX(col), wy = rowY(row), wz = 0.2;
-      for (let i = 0; i < 8; i++) {
-        const m = new THREE.Mesh(sparkGeo, Math.random() > 0.5 ? sparkMatA : sparkMatB);
-        m.position.set(wx, wy, wz);
-        m.userData.vx = (Math.random() - 0.5) * 0.12;
-        m.userData.vy = Math.random() * 0.12 + 0.04;
-        m.userData.vz = Math.random() * 0.06;
-        m.userData.life = 1.0;
-        sparkles.add(m);
-      }
+    function spawnWinRing(col, row, player) {
+      const geo = new THREE.RingGeometry(CHIP_R * 0.9, CHIP_R * 1.1, 48);
+      const mat = new THREE.MeshBasicMaterial({
+        color: RING_COLORS[player],
+        transparent: true,
+        opacity: 0.9,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(colX(col), rowY(row), BD / 2 + 0.12);
+      mesh.userData.scale = 1.0;
+      mesh.userData.life = 1.0;
+      scene.add(mesh);
+      winRings.push(mesh);
+    }
+
+    function clearWinRings() {
+      for (const r of winRings) scene.remove(r);
+      winRings.length = 0;
     }
 
     /* ── Win highlight ── */
@@ -1743,7 +1844,7 @@
         if (keys.has(`${e.col},${e.row}`)) {
           e.winner = true;
           for (const m of e.mats) m.emissiveIntensity = 0.5;
-          spawnSparkles(e.col, e.row);
+          spawnWinRing(e.col, e.row, e.player);
         }
       }
     }
@@ -1896,7 +1997,7 @@
       updateAvatars();
     }
 
-    // Toggle buttons
+    // Toggle buttons (only active in lobby)
     document.querySelectorAll('.toggle-opt').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = parseInt(btn.dataset.player);
@@ -1905,7 +2006,6 @@
 
         players[p].type = newType;
         if (newType === 'ai') {
-          // Assign AI persona
           const otherAI = players[1 - p].type === 'ai' ? players[1 - p].aiPersona : null;
           players[p].aiPersona = randomPersona(otherAI);
           players[p].name = 'AI ' + players[p].aiPersona.name;
@@ -1914,7 +2014,7 @@
           players[p].name = '';
         }
         updatePanels();
-        initGame();
+        // Don't restart - just update the UI
       });
     });
 
@@ -1951,8 +2051,9 @@
        BUTTONS
        ================================================================ */
     document.getElementById('btn-undo').addEventListener('click', doUndo);
-    document.getElementById('btn-new').addEventListener('click', initGame);
-    document.getElementById('btn-restart').addEventListener('click', initGame);
+    document.getElementById('btn-new').addEventListener('click', setupLobby);     // back to settings
+    document.getElementById('btn-restart').addEventListener('click', startGame);  // same settings, new game
+    document.getElementById('play-btn').addEventListener('click', startGame);     // lobby → game
 
     // Column buttons (mobile)
     const colButtons = document.getElementById('column-buttons');
@@ -1996,28 +2097,30 @@
         }
       }
 
-      // Continuously respawn sparkles on winning chips
+      // Spawn new sonar rings on winning chips periodically
       if (over) {
         sparkleRespawnTimer += dt;
-        if (sparkleRespawnTimer > 0.6) {
+        if (sparkleRespawnTimer > 0.55) {
           sparkleRespawnTimer = 0;
           for (const e of chipMeshes) {
-            if (e.winner) spawnSparkles(e.col, e.row);
+            if (e.winner) spawnWinRing(e.col, e.row, e.player);
           }
         }
       }
 
-      // Animate sparkles
-      for (let i = sparkles.children.length - 1; i >= 0; i--) {
-        const s = sparkles.children[i];
-        s.userData.life -= dt * 0.8;
-        if (s.userData.life <= 0) { sparkles.remove(s); continue; }
-        s.position.x += s.userData.vx;
-        s.position.y += s.userData.vy;
-        s.position.z += s.userData.vz;
-        s.userData.vy -= 0.004;
-        s.scale.setScalar(s.userData.life);
-        s.material.opacity = s.userData.life;
+      // Spin winning chips
+      for (const e of chipMeshes) {
+        if (e.winner) e.group.rotation.z += dt * 1.5;
+      }
+
+      // Animate sonar rings (expand + fade)
+      for (let i = winRings.length - 1; i >= 0; i--) {
+        const r = winRings[i];
+        r.userData.life -= dt * 0.7;
+        if (r.userData.life <= 0) { scene.remove(r); winRings.splice(i, 1); continue; }
+        r.userData.scale += dt * 2.5;
+        r.scale.setScalar(r.userData.scale);
+        r.material.opacity = r.userData.life * 0.85;
       }
 
       // Update confetti
@@ -2026,7 +2129,9 @@
       renderer.render(scene, camera);
     })();
 
-    initGame();
+    // Boot into lobby (settings chooser)
+    document.getElementById('status').style.display = 'none';
+    setupLobby();
   </script>
 </body>
 
